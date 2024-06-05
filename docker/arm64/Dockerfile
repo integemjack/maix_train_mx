@@ -28,6 +28,7 @@ RUN rm -rf Dockerfile
 RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/sbsa/cuda-ubuntu2004.pin
 RUN mv cuda-ubuntu2004.pin /etc/apt/preferences.d/cuda-repository-pin-600
 RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/sbsa/3bf863cc.pub
+RUN add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/sbsa/ /"
 RUN if [ "$(uname -m)" = "aarch64" ]; then \
     add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/sbsa/ /" \
     fi
