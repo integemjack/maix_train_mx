@@ -1,0 +1,12 @@
+tensorflow==2.6.2
+matplotlib==3.3.4
+scikit-learn==0.24.2
+imgaug==0.4.0
+imutils==0.5.4
+opencv-python==4.6.0.66
+numpy==1.19.5
+tqdm==4.64.1
+pandas==1.1.5
+pynvml==11.5.0
+pascal_voc_writer==0.1.4
+protobuf==3.19.6
