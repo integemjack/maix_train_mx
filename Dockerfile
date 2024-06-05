@@ -46,7 +46,7 @@ ARG TARGETARCH
 FROM cuda_x86_64 AS final_x86_64
 FROM cuda_arm64 AS final_arm64
 
-FROM final_${TARGETARCH} AS final
+# FROM final_${TARGETARCH} AS final
 
 # 设置工作目录
 WORKDIR /app
