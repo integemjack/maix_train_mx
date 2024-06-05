@@ -15,12 +15,12 @@ RUN apt update && apt install -y \
     gnupg \
     software-properties-common
 
-# 添加NVIDIA的CUDA APT存储库并安装CUDA
+# 添加NVIDIA的CUDA APT存储库并安装CUDA 11.8
 RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-ubuntu2004.pin
 RUN mv cuda-ubuntu2004.pin /etc/apt/preferences.d/cuda-repository-pin-600
 RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub
 RUN add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /"
-RUN apt update && apt install -y cuda
+RUN apt update && apt install -y cuda-11-8
 
 # 更新pip并安装必要的Python包
 RUN pip install --upgrade pip
