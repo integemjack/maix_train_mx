@@ -1,8 +1,8 @@
-# 使用NVIDIA提供的CUDA镜像作为基础镜像
+# 使用基础镜像
 FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu20.04
 
 # 更新包列表并添加deadsnakes PPA源
-RUN apt update && apt install -y \
+RUN apt-get update && apt-get install -y \
     software-properties-common && \
     add-apt-repository ppa:deadsnakes/ppa
 
@@ -33,7 +33,7 @@ COPY . /app
 
 # 安装Python包
 RUN pip install --upgrade pip
-RUN pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich
+RUN pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy==1.21.0 Cython==0.29.24 rich
 RUN pip install -r requirements.txt
 
 # 清理不必要的文件
