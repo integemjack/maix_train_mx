@@ -14,13 +14,12 @@ RUN apt update && apt install -y \
     wget \
     gnupg \
     software-properties-common \
-    build-essential \
-    cython && \
+    build-essential && \
     rm -rf /var/lib/apt/lists/*
 
 # 更新pip并安装必要的Python包
 RUN pip install --upgrade pip && \
-    pip install scikit-learn && \
+    pip install cython scikit-learn && \
     pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich && \
     if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
