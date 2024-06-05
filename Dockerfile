@@ -8,7 +8,7 @@ RUN apt update && apt install -y \
 
 # 安装Python 3.11和其他必要的系统包
 RUN apt update
-RUN apt install -y python3.11 python3.11-dev python3.11-distutils libgl1-mesa-glx nodejs
+RUN apt install -y python3.11 python3.11-dev python3.11-distutils libgl1-mesa-glx nodejs curl
 RUN rm -rf /var/lib/apt/lists/*
 
 # 创建Python3.11的软链接
