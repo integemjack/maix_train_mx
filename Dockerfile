@@ -1,9 +1,14 @@
 # 使用NVIDIA提供的CUDA镜像作为基础镜像
 FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu20.04
 
+# 更新包列表并添加deadsnakes PPA源
+RUN apt update && apt install -y \
+    software-properties-common && \
+    add-apt-repository ppa:deadsnakes/ppa
+
 # 安装Python 3.11和其他必要的系统包
-RUN apt-get update
-RUN apt-get install -y python3.11 python3.11-dev python3.11-distutils libgl1-mesa-glx nodejs
+RUN apt update
+RUN apt install -y python3.11 python3.11-dev python3.11-distutils libgl1-mesa-glx nodejs
 RUN rm -rf /var/lib/apt/lists/*
 
 # 创建Python3.11的软链接
