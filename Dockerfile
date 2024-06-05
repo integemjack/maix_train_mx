@@ -29,10 +29,10 @@ RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/sbs
 RUN mv cuda-ubuntu2004.pin /etc/apt/preferences.d/cuda-repository-pin-600
 RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/sbsa/3bf863cc.pub
 RUN if [ "$(uname -m)" = "aarch64" ]; then \
-    add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/sbsa/ /" \
+    add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/sbsa/ /"; \
     fi
 RUN if [ "$(uname -m)" = "amd64" ]; then \
-    add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /" \
+    add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /"; \
     fi
 RUN apt update && apt install -y cuda-toolkit-11-8
 
