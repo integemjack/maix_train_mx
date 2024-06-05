@@ -1,5 +1,5 @@
 # 使用Python 3.6.9基础镜像
-FROM python:3.6.9 AS base
+FROM python:3.6.9
 
 # 设置工作目录
 WORKDIR /app
@@ -24,29 +24,18 @@ RUN pip install -r requirements.txt
 RUN rm -rf requirements.txt
 RUN rm -rf Dockerfile
 
-# CUDA for x86_64
-FROM base AS cuda_x86_64
-RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-ubuntu2004.pin
-RUN mv cuda-ubuntu2004.pin /etc/apt/preferences.d/cuda-repository-pin-600
-RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub
-RUN add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /"
-RUN apt update && apt install -y cuda-toolkit-11-8
-
-# CUDA for arm64
-FROM base AS cuda_arm64
+# CUDA
 RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/sbsa/cuda-ubuntu2004.pin
 RUN mv cuda-ubuntu2004.pin /etc/apt/preferences.d/cuda-repository-pin-600
 RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/sbsa/3bf863cc.pub
 RUN add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/sbsa/ /"
+RUN if [ "$(uname -m)" = "aarch64" ]; then \
+    add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/sbsa/ /" \
+    fi
+RUN if [ "$(uname -m)" = "amd64" ]; then \
+    add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /" \
+    fi
 RUN apt update && apt install -y cuda-toolkit-11-8
-
-# 最终构建阶段，根据构建参数选择适当的基础镜像
-ARG TARGETARCH
-
-FROM cuda_x86_64 AS final_x86_64
-FROM cuda_arm64 AS final_arm64
-
-# FROM final_${TARGETARCH} AS final
 
 # 设置工作目录
 WORKDIR /app
