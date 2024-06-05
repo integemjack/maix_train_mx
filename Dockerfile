@@ -40,8 +40,19 @@ RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/
 RUN add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/sbsa/ /"
 RUN apt update && apt install -y cuda-toolkit-11-8
 
-# 最终构建阶段
-FROM cuda_${TARGETARCH}
+# 最终构建阶段，根据构建参数选择适当的基础镜像
+ARG TARGETARCH
+
+FROM cuda_x86_64 AS final_x86_64
+FROM cuda_arm64 AS final_arm64
+
+FROM final_${TARGETARCH} AS final
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制当前目录内容到容器中的/app目录
+COPY . /app
 
 # 运行JupyterLab
 CMD ["jupyter", "lab", "--ip=0.0.0.0", "--allow-root", "--no-browser"]
