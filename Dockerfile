@@ -1,6 +1,10 @@
 # 使用NVIDIA CUDA 11.8和Python 3.11基础镜像
 FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04
 
+# 设置环境变量以自动选择时区
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
+
 # 设置工作目录
 WORKDIR /app
 
@@ -19,7 +23,7 @@ COPY . /app
 
 # 安装Python 3.11
 RUN apt update && \
-    apt install -y python3.11 python3.11-dev python3.11-distutils && \
+    apt install -y python3.11 python3.11-dev python3.11-distutils tzdata && \
     rm /usr/bin/python3 && ln -s /usr/bin/python3.11 /usr/bin/python3 && \
     wget https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py && \
     rm get-pip.py
