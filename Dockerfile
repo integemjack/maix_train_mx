@@ -15,8 +15,15 @@ RUN apt update && apt install -y \
     wget \
     gnupg \
     software-properties-common \
-    build-essential && \
-    add-apt-repository ppa:deadsnakes/ppa && \
+    build-essential \
+    libatlas-base-dev \
+    libssl-dev \
+    libffi-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    zlib1g-dev \
+    && add-apt-repository ppa:deadsnakes/ppa && \
     apt update && \
     apt install -y python3.11 python3.11-dev python3.11-distutils tzdata && \
     rm /usr/bin/python3 && ln -s /usr/bin/python3.11 /usr/bin/python3 && \
