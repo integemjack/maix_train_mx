@@ -16,17 +16,16 @@ RUN apt update && apt install -y \
     gnupg \
     software-properties-common \
     build-essential && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt update && \
+    apt install -y python3.11 python3.11-dev python3.11-distutils tzdata && \
+    rm /usr/bin/python3 && ln -s /usr/bin/python3.11 /usr/bin/python3 && \
+    wget https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py && \
+    rm get-pip.py && \
     rm -rf /var/lib/apt/lists/*
 
 # 复制当前目录内容到容器中的/app目录
 COPY . /app
-
-# 安装Python 3.11
-RUN apt update && \
-    apt install -y python3.11 python3.11-dev python3.11-distutils tzdata && \
-    rm /usr/bin/python3 && ln -s /usr/bin/python3.11 /usr/bin/python3 && \
-    wget https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py && \
-    rm get-pip.py
 
 # 更新pip并安装必要的Python包
 RUN pip install --upgrade pip && \
