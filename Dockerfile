@@ -28,8 +28,8 @@ RUN apt update && apt install -y \
     apt install -y python3.11 python3.11-dev python3.11-distutils tzdata && \
     rm /usr/bin/python3 && ln -s /usr/bin/python3.11 /usr/bin/python3 && \
     wget https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py && \
-    apt autoremove -y \
-    apt clean \
+    apt autoremove -y && \
+    apt clean && \
     rm get-pip.py && \
     rm -rf /var/lib/apt/lists/*
 
