@@ -35,10 +35,10 @@ RUN apt update && apt install -y \
 COPY . /app
 
 # 更新pip并安装必要的Python包
-RUN pip install --upgrade pip && \
-    pip install cython scikit-learn && \
-    pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich && \
-    if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+RUN pip install --upgrade pip
+RUN pip install cython scikit-learn
+RUN pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich
+RUN pip install -r requirements.txt
 
 # 清理不必要的文件
 RUN rm -f requirements.txt Dockerfile
