@@ -1,9 +1,5 @@
 # 使用NVIDIA CUDA 11.8和Python 3.11基础镜像
-FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
-
-# 设置环境变量以自动选择时区
-ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=Etc/UTC
+FROM tensorflow/tensorflow:2.16.1-gpu
 
 # 设置工作目录
 WORKDIR /app
@@ -13,16 +9,7 @@ RUN apt update && apt install -y \
     libgl1-mesa-glx \
     nodejs \
     wget \
-    gnupg \
-    software-properties-common \
-    build-essential \
-    libatlas-base-dev \
-    libssl-dev \
-    libffi-dev \
-    libbz2-dev \
-    libreadline-dev \
-    libsqlite3-dev \
-    zlib1g-dev \
+    curl \
     && add-apt-repository ppa:deadsnakes/ppa && \
     apt update && \
     apt install -y python3.11 python3.11-dev python3.11-distutils tzdata && \
