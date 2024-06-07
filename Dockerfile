@@ -9,7 +9,7 @@ ENV TZ=Etc/UTC
 WORKDIR /app
 
 # 更新包列表并安装必要的系统包
-RUN apt update && apt install -y \
+RUN apt update && apt install -y --no-install-recommends \
     libgl1-mesa-glx \
     nodejs \
     wget \
@@ -23,9 +23,12 @@ RUN apt update && apt install -y \
     libreadline-dev \
     libsqlite3-dev \
     zlib1g-dev \
+    pkg-config \
+    libfreetype6-dev \
+    libhdf5-dev \
     && add-apt-repository ppa:deadsnakes/ppa && \
     apt update && \
-    apt install -y python3.11 python3.11-dev python3.11-distutils tzdata && \
+    apt install -y --no-install-recommends python3.11 python3.11-dev python3.11-distutils tzdata && \
     rm /usr/bin/python3 && ln -s /usr/bin/python3.11 /usr/bin/python3 && \
     wget https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py && \
     apt autoremove -y && \
@@ -38,12 +41,21 @@ COPY . /app
 
 # 更新pip并安装必要的Python包
 RUN pip install --upgrade pip
+
+# 分步骤安装库以便于调试
 RUN pip install cython scikit-learn
-RUN pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich
+RUN pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare
+
+# 单独安装matplotlib和h5py，以便在出错时进行调试
+RUN pip install matplotlib
+RUN pip install h5py
+
+# 安装requirements.txt中的其他依赖项
 RUN pip install -r requirements.txt
 
 # 清理不必要的文件
 RUN rm -f requirements.txt Dockerfile
+RUN rm -rf docker
 
 # 运行JupyterLab
 CMD ["jupyter", "lab", "--ip=0.0.0.0", "--allow-root", "--no-browser"]
