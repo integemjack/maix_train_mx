@@ -1,4 +1,4 @@
-# 使用NVIDIA CUDA 11.8和Python 3.11基础镜像
+# 使用NVIDIA CUDA 11.8和Python基础镜像
 FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
 
 # 设置环境变量以自动选择时区
@@ -26,36 +26,36 @@ RUN apt update && apt install -y --no-install-recommends \
     pkg-config \
     libfreetype6-dev \
     libhdf5-dev \
-    && add-apt-repository ppa:deadsnakes/ppa && \
-    apt update && \
-    apt install -y --no-install-recommends python3.11 python3.11-dev python3.11-distutils tzdata && \
-    rm /usr/bin/python3 && ln -s /usr/bin/python3.11 /usr/bin/python3 && \
-    wget https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py && \
-    apt autoremove -y && \
+    curl \
+    && apt autoremove -y && \
     apt clean && \
-    rm get-pip.py && \
     rm -rf /var/lib/apt/lists/*
+
+# 安装 pyenv
+RUN curl https://pyenv.run | bash
+
+# 设置 pyenv 环境变量
+ENV PATH="/root/.pyenv/bin:/root/.pyenv/shims:${PATH}"
+ENV PYENV_ROOT="/root/.pyenv"
+
+# 安装 Python 3.6.9
+RUN pyenv install 3.6.9 && \
+    pyenv global 3.6.9
+
+# 安装 pip
+RUN wget https://bootstrap.pypa.io/pip/3.6/get-pip.py && python3 get-pip.py && rm get-pip.py
 
 # 复制当前目录内容到容器中的/app目录
 COPY . /app
 
 # 更新pip并安装必要的Python包
-RUN pip install --upgrade pip
-
-# 分步骤安装库以便于调试
-RUN pip install cython scikit-learn
-RUN pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare
-
-# 单独安装matplotlib和h5py，以便在出错时进行调试
-RUN pip install matplotlib
-RUN pip install h5py
-
-# 安装requirements.txt中的其他依赖项
-RUN pip install -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install cython scikit-learn jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare matplotlib h5py && \
+    pip install -r requirements.txt
 
 # 清理不必要的文件
-RUN rm -f requirements.txt Dockerfile
-RUN rm -rf docker
+RUN rm -f requirements.txt Dockerfile && \
+    rm -rf docker
 
 # 运行JupyterLab
 CMD ["jupyter", "lab", "--ip=0.0.0.0", "--allow-root", "--no-browser"]
