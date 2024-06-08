@@ -1,5 +1,5 @@
 # 使用NVIDIA CUDA 11.8和Python基础镜像
-FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04
 
 # 设置环境变量以自动选择时区
 ENV DEBIAN_FRONTEND=noninteractive
@@ -27,7 +27,11 @@ RUN apt update && apt install -y --no-install-recommends \
     libfreetype6-dev \
     libhdf5-dev \
     curl \
-    && apt autoremove -y && \
+    git \
+    liblzma-dev \
+    libncurses5-dev && \
+    apt install -y --fix-missing && \
+    apt autoremove -y && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -38,20 +42,18 @@ RUN curl https://pyenv.run | bash
 ENV PATH="/root/.pyenv/bin:/root/.pyenv/shims:${PATH}"
 ENV PYENV_ROOT="/root/.pyenv"
 
-# 安装 Python 3.6.9
-RUN pyenv install 3.6.9 && \
-    pyenv global 3.6.9
-
-# 安装 pip
-RUN wget https://bootstrap.pypa.io/pip/3.6/get-pip.py && python3 get-pip.py && rm get-pip.py
+# 安装 Python 3.8 和 pip
+RUN pyenv install 3.8 && \
+    pyenv global 3.8 && \
+    wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py && rm get-pip.py
 
 # 复制当前目录内容到容器中的/app目录
 COPY . /app
 
 # 更新pip并安装必要的Python包
 RUN pip install --upgrade pip && \
-    pip install cython scikit-learn jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare matplotlib h5py && \
-    pip install -r requirements.txt
+    pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare && \
+    if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
 # 清理不必要的文件
 RUN rm -f requirements.txt Dockerfile && \

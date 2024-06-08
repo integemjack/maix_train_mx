@@ -19,5 +19,8 @@
     ],
     "python.autoComplete.extraPaths": [
         "/home/docker/.vscode/extensions/rt-thread.rt-thread-micropython-1.0.11/microExamples/code-completion"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/docker/.vscode/extensions/rt-thread.rt-thread-micropython-1.0.11/microExamples/code-completion"
     ]
 }
