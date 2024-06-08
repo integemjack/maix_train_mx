@@ -9,7 +9,7 @@ ENV TZ=Etc/UTC
 WORKDIR /app
 
 # 更新包列表并安装必要的系统包
-RUN apt update && apt install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1-mesa-glx \
     nodejs \
     wget \
@@ -29,31 +29,25 @@ RUN apt update && apt install -y --no-install-recommends \
     curl \
     git \
     liblzma-dev \
-    libncurses5-dev && \
-    apt install -y --fix-missing && \
-    apt autoremove -y && \
-    apt clean && \
+    libncurses5-dev \
+    python3.8 \
+    python3.8-dev \
+    python3-pip && \
+    apt-get install -y --fix-missing && \
+    apt-get autoremove -y && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# 安装 pyenv
-RUN curl https://pyenv.run | bash
-
-# 设置 pyenv 环境变量
-ENV PATH="/root/.pyenv/bin:/root/.pyenv/shims:${PATH}"
-ENV PYENV_ROOT="/root/.pyenv"
-
-# 安装 Python 3.8 和 pip
-RUN pyenv install 3.8 && \
-    pyenv global 3.8 && \
-    wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py && rm get-pip.py
+# 更新pip并安装必要的Python包
+RUN python3.8 -m pip install --upgrade pip && \
+    python3.8 -m pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare tensorflow-gpu && \
+    if [ -f requirements.txt ]; then python3.8 -m pip install -r requirements.txt; fi
 
 # 复制当前目录内容到容器中的/app目录
 COPY . /app
 
-# 更新pip并安装必要的Python包
-RUN pip install --upgrade pip && \
-    pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare && \
-    if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+# 解压 tools.zip 到 maix_train_mx 目录
+RUN unzip -o /app/tools.zip -d /app/maix_train_mx
 
 # 清理不必要的文件
 RUN rm -f requirements.txt Dockerfile && \
