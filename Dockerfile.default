@@ -59,9 +59,6 @@ RUN rm -rf requirements.txt Dockerfile docker
 # 克隆 nncase 源代码并构建
 RUN git clone -b release/1.0 https://github.com/kendryte/nncase.git --recursive && \
     cd nncase && \
-    conan remote add sunnycase https://conan.sunnycase.moe && \
-    conan config set general.revisions_enabled=True && \
-    conan config set storage.ssl_verify=True && \
     mkdir build && \
     cd build && \
     cmake .. -DCMAKE_BUILD_TYPE=Debug && \
