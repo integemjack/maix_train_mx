@@ -5,6 +5,9 @@ FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
 
+# 设置Conan环境变量以禁用SSL验证
+ENV CONAN_SSL_NO_VERIFY=1
+
 # 设置工作目录
 WORKDIR /app
 
@@ -40,6 +43,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
     cmake \
     ca-certificates && \
+    update-ca-certificates && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -59,9 +63,10 @@ RUN python3.8 -m pip install --upgrade pip && \
 # 安装特定版本的Conan
 RUN python3.8 -m pip install conan==1.38.0
 
-# 配置Conan远程仓库为阿里云源
-RUN conan remote add conancenter https://mirrors.aliyun.com/conan/conancenter && \
-    conan remote add bincrafters https://mirrors.aliyun.com/conan/bincrafters
+# 清空现有的Conan远程仓库，并添加多个远程仓库
+RUN conan remote clean && \
+    conan remote add conancenter https://center.conan.io && \
+    conan remote add bincrafters https://bincrafters.jfrog.io/artifactory/api/conan/public-conan
 
 # 手动创建Conan默认配置文件并设置C++标准为20
 RUN conan profile new default --detect && \
