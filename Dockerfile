@@ -8,6 +8,11 @@ ENV TZ=Etc/UTC
 # 设置工作目录
 WORKDIR /app
 
+# 更新APT源为阿里云的源
+RUN sed -i 's|http://archive.ubuntu.com/ubuntu/|http://mirrors.aliyun.com/ubuntu/|g' /etc/apt/sources.list && \
+    sed -i 's|http://security.ubuntu.com/ubuntu/|http://mirrors.aliyun.com/ubuntu/|g' /etc/apt/sources.list && \
+    sed -i 's|http://ports.ubuntu.com/ubuntu-ports|http://mirrors.aliyun.com/ubuntu-ports|g' /etc/apt/sources.list
+
 # 更新包列表并安装必要的系统包
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1-mesa-glx \
@@ -54,8 +59,9 @@ RUN python3.8 -m pip install --upgrade pip && \
 # 安装特定版本的Conan
 RUN python3.8 -m pip install conan==1.38.0
 
-# 指定Conan远程仓库
-RUN conan remote add sunnycase https://conan.sunnycase.moe
+# 配置Conan远程仓库为阿里云源
+RUN conan remote add conancenter https://mirrors.aliyun.com/conan/conancenter && \
+    conan remote add bincrafters https://mirrors.aliyun.com/conan/bincrafters
 
 # 手动创建Conan默认配置文件并设置C++标准为20
 RUN conan profile new default --detect && \
