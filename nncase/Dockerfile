@@ -44,22 +44,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 40
 
 # 安装 conan 1.x 版本和最新的 cmake
-RUN python3.8 -m pip install --upgrade pip && \
-    python3.8 -m pip install "conan<2" cmake
+RUN python3.8 -m pip install --upgrade pip
+RUN python3.8 -m pip install "conan<2" cmake
 
 # 克隆 nncase 源代码并构建
-RUN git clone -b release/1.0 https://github.com/kendryte/nncase.git --recursive && \
-    cd nncase && \
-    conan remote add sunnycase https://conan.sunnycase.moe && \
-    conan profile new default --detect && \
-    conan profile update settings.compiler.libcxx=libstdc++11 default && \
-    conan profile update settings.compiler.cppstd=20 default && \
-    mkdir -p build && \
-    cd build && \
-    conan install .. --build missing && \
-    cmake .. -DNNCASE_TARGET=k210 -DCMAKE_BUILD_TYPE=Debug && \
-    make -j8 && \
-    cmake --install . --prefix ../install && \
-    rm -rf /root/.conan && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN git clone -b release/1.0 https://github.com/kendryte/nncase.git --recursive
+
+WORKDIR /app/nncase
+
+RUN conan remote add sunnycase https://conan.sunnycase.moe
+RUN conan profile new default --detect
+RUN conan profile update settings.compiler.libcxx=libstdc++11 default
+RUN conan profile update settings.compiler.cppstd=20 default
+RUN mkdir -p build
+
+WORKDIR /app/nncase/build
+
+RUN conan install .. --build missing
+RUN cmake .. -DNNCASE_TARGET=k210 -DCMAKE_BUILD_TYPE=Debug && \
+RUN make -j8 && \
+RUN cmake --install . --prefix ../install
