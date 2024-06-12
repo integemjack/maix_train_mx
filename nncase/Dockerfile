@@ -8,6 +8,11 @@ ENV TZ=Etc/UTC
 # 设置工作目录
 WORKDIR /app
 
+# 更新APT源为阿里云的源
+RUN sed -i 's|http://archive.ubuntu.com/ubuntu/|http://mirrors.aliyun.com/ubuntu/|g' /etc/apt/sources.list && \
+    sed -i 's|http://security.ubuntu.com/ubuntu/|http://mirrors.aliyun.com/ubuntu/|g' /etc/apt/sources.list && \
+    sed -i 's|http://ports.ubuntu.com/ubuntu-ports|http://mirrors.aliyun.com/ubuntu-ports|g' /etc/apt/sources.list
+
 # 更新包列表并安装必要的系统包，并清理缓存
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
