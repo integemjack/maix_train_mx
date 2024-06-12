@@ -4,6 +4,12 @@ DOCKERFILE_PATH="./Dockerfile"
 API_KEY=$OPENAI_API_KEY
 API_URL="https://api.openai.com/v1/chat/completions"
 
+# Ensure jq is installed
+if ! command -v jq &> /dev/null; then
+    echo "jq could not be found, installing..."
+    apt-get update && apt-get install -y jq
+fi
+
 run_command() {
     echo "Running command: $1"
     eval "$1" 2>&1 | tee -a output.log
@@ -39,16 +45,22 @@ get_modified_dockerfile() {
           "max_tokens": 4096
         }')
 
+    echo "Response from API: $response"
     echo "$response" | jq -r '.choices[0].message.content'
 }
 
 extract_dockerfile_content() {
     echo "Extracting Dockerfile content..."
-    echo "$1" | sed -n '/```/,/```/p' | sed '1d;$d'
+    echo "$1" | awk '/^```/,/^```$/' | sed '1d;$d' |
+    awk '/^```dockerfile/,/^```$/' | sed '1d;$d' |
+    awk '/^```Dockerfile/,/^```$/' | sed '1d;$d'
 }
 
 main() {
-    while true; do
+    attempt=0
+    max_attempts=3
+
+    while [ $attempt -lt $max_attempts ]; do
         build_docker_image
         if [ $? -ne 0 ]; then
             echo "Error building Docker image"
@@ -58,11 +70,18 @@ main() {
             modified_dockerfile=$(get_modified_dockerfile "$dockerfile_content" "$error_message")
             if [ -z "$modified_dockerfile" ]; then
                 echo "Failed to get modified Dockerfile. Exiting..."
-                break
+                exit 1
             fi
+            echo "Modified Dockerfile response: $modified_dockerfile"
             extracted_content=$(extract_dockerfile_content "$modified_dockerfile")
+            echo "Extracted Dockerfile content: $extracted_content"
+            if [ -z "$extracted_content" ]; then
+                echo "No valid content extracted. Exiting..."
+                exit 1
+            fi
             echo "Writing modified Dockerfile..."
             echo "$extracted_content" > "$DOCKERFILE_PATH"
+            attempt=$((attempt + 1))
             continue
         fi
 
@@ -75,17 +94,29 @@ main() {
             modified_dockerfile=$(get_modified_dockerfile "$dockerfile_content" "$error_message")
             if [ -z "$modified_dockerfile" ]; then
                 echo "Failed to get modified Dockerfile. Exiting..."
-                break
+                exit 1
             fi
+            echo "Modified Dockerfile response: $modified_dockerfile"
             extracted_content=$(extract_dockerfile_content "$modified_dockerfile")
+            echo "Extracted Dockerfile content: $extracted_content"
+            if [ -z "$extracted_content" ]; then
+                echo "No valid content extracted. Exiting..."
+                exit 1
+            fi
             echo "Writing modified Dockerfile..."
             echo "$extracted_content" > "$DOCKERFILE_PATH"
+            attempt=$((attempt + 1))
             continue
         fi
 
         echo "Docker container ran successfully with output:"
         break
     done
+
+    if [ $attempt -ge $max_attempts ]; then
+        echo "Exceeded maximum attempts. Exiting..."
+        exit 1
+    fi
 }
 
 main
