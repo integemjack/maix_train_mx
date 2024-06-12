@@ -36,14 +36,17 @@ get_modified_dockerfile() {
     response=$(curl -s -X POST "$API_URL" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $API_KEY" \
-    -d '{
-          "model": "gpt-4o",
-          "messages": [
-            {"role": "system", "content": "You are a helpful assistant that can fix Dockerfiles."},
-            {"role": "user", "content": "Here is a Dockerfile:\n\n'"$1"'\n\nAnd here is the error message:\n\n'"$2"'\n\nPlease provide a corrected version of the Dockerfile."}
-          ],
-          "max_tokens": 4096
-        }')
+    -d "$(cat <<EOF
+{
+  "model": "gpt-4o",
+  "messages": [
+    {"role": "system", "content": "You are a helpful assistant that can fix Dockerfiles."},
+    {"role": "user", "content": "Here is a Dockerfile:\n\n$1\n\nAnd here is the error message:\n\n$2\n\nPlease provide a corrected version of the Dockerfile."}
+  ],
+  "max_tokens": 4096
+}
+EOF
+    )")
 
     echo "Response from API: $response"
     echo "$response" | jq -r '.choices[0].message.content'
@@ -52,7 +55,7 @@ get_modified_dockerfile() {
 extract_dockerfile_content() {
     echo "Extracting Dockerfile content..."
     echo "$1" | awk '/^```/,/^```$/' | sed '1d;$d' |
-    awk '/^```dockerfile/,/^```$/' | sed '1d;$d' |
+    awk '/^```docker file/,/^```$/' | sed '1d;$d' |
     awk '/^```Dockerfile/,/^```$/' | sed '1d;$d'
 }
 
