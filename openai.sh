@@ -55,7 +55,7 @@ EOF
 extract_dockerfile_content() {
     echo "Extracting Dockerfile content..."
     echo "$1" | awk '/^```/,/^```$/' | sed '1d;$d' |
-    awk '/^```docker file/,/^```$/' | sed '1d;$d' |
+    awk '/^```dockerfile/,/^```$/' | sed '1d;$d' |
     awk '/^```Dockerfile/,/^```$/' | sed '1d;$d'
 }
 
