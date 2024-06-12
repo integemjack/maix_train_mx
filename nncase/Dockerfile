@@ -61,6 +61,6 @@ RUN mkdir -p build
 WORKDIR /app/nncase/build
 
 RUN conan install .. --build missing
-RUN cmake .. -DNNCASE_TARGET=k210 -DCMAKE_BUILD_TYPE=Debug && \
+RUN cmake .. -DNNCASE_TARGET=k210 -DCMAKE_BUILD_TYPE=Debug
 RUN make -j8
 RUN cmake --install . --prefix ../install
