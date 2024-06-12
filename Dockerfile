@@ -10,8 +10,6 @@ WORKDIR /app
 
 # 更新包列表并安装必要的系统包，并清理缓存
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1-mesa-glx \
-    nodejs \
     wget \
     gnupg \
     software-properties-common \
@@ -44,16 +42,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python3.8 -m pip install --upgrade pip && \
     python3.8 -m pip install "conan<2" cmake
 
-# 复制当前目录内容到容器中的 /app 目录
-COPY . /app
-
-# 安装 Python 依赖
-COPY requirements.txt /app/requirements.txt
-RUN python3.8 -m pip install -r /app/requirements.txt && \
-    rm -rf /root/.cache/pip
-
 # 克隆 nncase 源代码并构建
-RUN git clone -b release/1.0 https://github.com/kendryte/nncase.git --recursive && \
+RUN git clone https://github.com/kendryte/nncase.git --recursive && \
     cd nncase && \
     conan remote add sunnycase https://conan.sunnycase.moe && \
     conan profile new default --detect && \
@@ -62,7 +52,7 @@ RUN git clone -b release/1.0 https://github.com/kendryte/nncase.git --recursive 
     mkdir -p build && \
     cd build && \
     conan install .. --build missing && \
-    cmake .. -DCMAKE_BUILD_TYPE=Debug && \
+    cmake .. -DNNCASE_TARGET=k210 -DCMAKE_BUILD_TYPE=Debug && \
     make -j8 && \
     cmake --install . --prefix ../install && \
     rm -rf /root/.conan && \
@@ -79,8 +69,38 @@ ENV TZ=Etc/UTC
 # 设置工作目录
 WORKDIR /app
 
+# 复制当前目录内容到容器中的 /app 目录
+COPY . /app
+
+# 更新包列表并安装必要的系统包，并清理缓存
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1-mesa-glx \
+    nodejs \
+    wget \
+    gnupg \
+    software-properties-common \
+    build-essential \
+    libatlas-base-dev \
+    libssl-dev \
+    libffi-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    zlib1g-dev \
+    pkg-config \
+    libfreetype6-dev \
+    libhdf5-dev \
+    curl \
+    git \
+    python3.8 \
+    python3.8-dev \
+    python3-pip
+
 # 复制构建结果到最终镜像
-COPY --from=builder /app /app
+COPY --from=builder /app/nncase /app/nncase
+
+RUN pip install cython scikit-learn jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare
+RUN pip install -r /app/requirements.txt
 
 # 运行 JupyterLab
 CMD ["jupyter", "lab", "--ip=0.0.0.0", "--allow-root", "--no-browser"]
