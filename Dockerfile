@@ -49,7 +49,8 @@ COPY . /app
 
 # 安装 Python 依赖
 COPY requirements.txt /app/requirements.txt
-RUN python3.8 -m pip install -r /app/requirements.txt
+RUN python3.8 -m pip install -r /app/requirements.txt && \
+    rm -rf /root/.cache/pip
 
 # 克隆 nncase 源代码并构建
 RUN git clone -b release/1.0 https://github.com/kendryte/nncase.git --recursive && \
@@ -63,7 +64,10 @@ RUN git clone -b release/1.0 https://github.com/kendryte/nncase.git --recursive 
     conan install .. --build missing && \
     cmake .. -DCMAKE_BUILD_TYPE=Debug && \
     make -j8 && \
-    cmake --install . --prefix ../install
+    cmake --install . --prefix ../install && \
+    rm -rf /root/.conan && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # 使用较小的基础镜像进行最终镜像构建
 FROM nvidia/cuda:11.8.0-runtime-ubuntu20.04
