@@ -48,7 +48,7 @@ RUN python3.8 -m pip install --upgrade pip && \
     python3.8 -m pip install "conan<2" cmake
 
 # 克隆 nncase 源代码并构建
-RUN git clone https://github.com/kendryte/nncase.git --recursive && \
+RUN git clone -b release/1.0 https://github.com/kendryte/nncase.git --recursive && \
     cd nncase && \
     conan remote add sunnycase https://conan.sunnycase.moe && \
     conan profile new default --detect && \
