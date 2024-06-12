@@ -49,7 +49,7 @@ COPY . /app
 
 # 安装 Python 依赖
 COPY requirements.txt /app/requirements.txt
-# RUN python3.8 -m pip install -r /app/requirements.txt
+RUN python3.8 -m pip install -r /app/requirements.txt
 
 # 克隆 nncase 源代码并构建
 RUN git clone -b release/1.0 https://github.com/kendryte/nncase.git --recursive && \
