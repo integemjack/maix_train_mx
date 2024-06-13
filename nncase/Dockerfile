@@ -66,7 +66,7 @@ RUN conan profile update settings.compiler.cppstd=20 default
 
 RUN mkdir -p build
 
-# WORKDIR /app/nncase/build
+WORKDIR /app/nncase/build
 
 RUN conan install .. --build missing
 
@@ -74,5 +74,5 @@ RUN conan install .. --build missing
 ENV CC=/usr/bin/gcc-10
 ENV CXX=/usr/bin/g++-10
 
-RUN cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DPython3_ROOT_DIR=/usr/bin/python3.7
+RUN cmake -S .. -B . -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DPython3_ROOT_DIR=/usr/bin/python3.7
 RUN cmake --build . --target install --prefix install
