@@ -62,7 +62,7 @@ WORKDIR /app/nncase
 RUN conan remote add sunnycase https://conan.sunnycase.moe
 RUN conan profile new default --detect
 RUN conan profile update settings.compiler.libcxx=libstdc++11 default
-# RUN conan profile update settings.compiler.cppstd=20 default
+RUN conan profile update settings.compiler.cppstd=gnu20 default
 
 # 修改 CMakeLists.txt 文件以使用 C++14
 # RUN sed -i '1s/^/set(CMAKE_CXX_STANDARD 14)\nset(CMAKE_CXX_STANDARD_REQUIRED ON)\n/' ../CMakeLists.txt
