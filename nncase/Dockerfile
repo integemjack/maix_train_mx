@@ -74,5 +74,5 @@ RUN conan install .. --build missing
 ENV CC=/usr/bin/gcc-10
 ENV CXX=/usr/bin/g++-10
 
-RUN cmake -S .. -B . -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DPython3_ROOT_DIR=/usr/bin/python3.7
+RUN cmake -S .. -B . -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DPython3_EXECUTABLE=/usr/bin/python3.7 -DPython3_INCLUDE_DIR=/usr/include/python3.7 -DPython3_LIBRARY=/usr/lib/x86_64-linux-gnu/libpython3.7m.so
 RUN cmake --build . --target install --prefix install
