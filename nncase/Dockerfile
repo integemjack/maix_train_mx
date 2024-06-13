@@ -78,6 +78,7 @@ RUN cmake -S .. -B . -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DPy
 
 # 修改 CMakeLists.txt 文件以使用 C++14
 RUN sed -i '1s/^/set(CMAKE_CXX_STANDARD 14)\nset(CMAKE_CXX_STANDARD_REQUIRED ON)\n/' ../CMakeLists.txt
+RUN conan profile update settings.compiler.cppstd=20 default
 
 RUN cmake --build . --config Release
 RUN cmake --install . --prefix install
