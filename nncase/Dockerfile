@@ -62,7 +62,7 @@ WORKDIR /app/nncase
 RUN conan remote add sunnycase https://conan.sunnycase.moe
 RUN conan profile new default --detect
 RUN conan profile update settings.compiler.libcxx=libstdc++11 default
-RUN conan profile update settings.compiler.cppstd=20 default
+# RUN conan profile update settings.compiler.cppstd=20 default
 
 RUN mkdir -p build
 
@@ -77,7 +77,7 @@ ENV CXX=/usr/bin/g++-10
 RUN cmake -S .. -B . -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DPython3_EXECUTABLE=/usr/bin/python3.7 -DPython3_INCLUDE_DIR=/usr/include/python3.7 -DPython3_LIBRARY=/usr/lib/x86_64-linux-gnu/libpython3.7m.so
 
 # 修改 CMakeLists.txt 文件以使用 C++14
-RUN sed -i '1s/^/set(CMAKE_CXX_STANDARD 20)\nset(CMAKE_CXX_STANDARD_REQUIRED ON)\n/' ../CMakeLists.txt
+# RUN sed -i '1s/^/set(CMAKE_CXX_STANDARD 20)\nset(CMAKE_CXX_STANDARD_REQUIRED ON)\n/' ../CMakeLists.txt
 
 RUN cmake --build . --config Release
 RUN cmake --install . --prefix install
