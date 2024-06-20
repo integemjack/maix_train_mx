@@ -5,39 +5,41 @@
     @license Apache 2.0 © 2020 Sipeed Ltd
 '''
 
-import os, sys
-root_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from enum import Enum
+import json
+import traceback
+import zipfile
+import subprocess
+from datetime import datetime
+import time
+from train import config
+from utils.logger import Logger, Fake_Logger
+from utils import gpu_utils, isascii
+import shutil
+import tempfile
+import requests
+from detector import Detector
+from classifier import Classifier
+import os
+import sys
+root_path = os.path.abspath(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), ".."))
 sys.path.append(root_path)
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 
-from classifier import Classifier
-from detector import Detector
-import requests
-import tempfile
-import shutil
-from utils import gpu_utils, isascii
-from utils.logger import Logger, Fake_Logger
-from train import config
-import time
-from datetime import datetime
-import subprocess
-import zipfile
-import traceback
-import json
-from enum import Enum
-
 class TrainType(Enum):
     CLASSIFIER = 0
-    DETECTOR   = 1
+    DETECTOR = 1
+
 
 class TrainFailReason(Enum):
-    ERROR_NONE     = 0
+    ERROR_NONE = 0
     ERROR_INTERNAL = 1
     ERROR_DOWNLOAD_DATASETS = 2
     ERROR_NODE_BUSY = 3
-    ERROR_PARAM     = 4
-    ERROR_CANCEL    = 5
+    ERROR_PARAM = 4
+    ERROR_CANCEL = 5
 
 
 class Train():
@@ -53,57 +55,59 @@ class Train():
         '''
             creat /temp/train_temp dir to train
         '''
-        self.alpha=alpha
-        self.batch_size=batch_size
-        self.train_epochs=epoch
+        self.alpha = alpha
+        self.batch_size = batch_size
+        self.train_epochs = epoch
         self.train_type = train_type
         self.datasets_cls_dir = datasets_cls_dir
         self.datasets_zip_path = datasets_zip
         self.dataset_img_dir = dataset_img_dir
         self.dataset_xml_dir = dataset_xml_dir
         self.temp_dir = out_dir
-        assert os.path.exists(datasets_zip) or os.path.exists(dataset_img_dir) or os.path.exists(dataset_xml_dir) or os.path.exists(self.datasets_cls_dir) 
+        assert os.path.exists(datasets_zip) or os.path.exists(dataset_img_dir) or os.path.exists(
+            dataset_xml_dir) or os.path.exists(self.datasets_cls_dir)
         if os.path.exists(dataset_img_dir) or os.path.exists(dataset_xml_dir):
             self.datasets_img_dir = dataset_img_dir
             self.datasets_xml_dir = dataset_xml_dir
         else:
             self.datasets_img_dir = ""
             self.datasets_img_dir = ""
-        if os.path.exists(datasets_cls_dir) :
-            self.dataset_cls_dir=datasets_cls_dir
+        if os.path.exists(datasets_cls_dir):
+            self.dataset_cls_dir = datasets_cls_dir
         else:
             self.datasets_cls_dir = ""
         self.temp_datasets_dir = os.path.join(self.temp_dir, "datasets")
         self.result_dir = os.path.join(self.temp_dir, "result")
-        #self.clean_temp_files()
-        #os.makedirs(self.temp_dir)
+        # self.clean_temp_files()
+        # os.makedirs(self.temp_dir)
         if os.path.exists(self.result_dir):
             shutil.rmtree(self.result_dir)
         os.makedirs(self.result_dir)
-        self.dataset_sample_images_path = os.path.join(self.temp_dir, "sample_images")
+        self.dataset_sample_images_path = os.path.join(
+            self.temp_dir, "sample_images")
         os.makedirs(self.dataset_sample_images_path)
         self.log_file_path = os.path.join(self.temp_dir, "train_log.log")
-        self.result_report_img_path = os.path.join(self.result_dir, "report.jpg")
+        self.result_report_img_path = os.path.join(
+            self.result_dir, "report.jpg")
         self.result_kmodel_path = os.path.join(self.result_dir, "mx.kmodel")
-        self.result_labels_path  = os.path.join(self.result_dir, "labels.txt")
+        self.result_labels_path = os.path.join(self.result_dir, "labels.txt")
         self.result_boot_py_path = os.path.join(self.result_dir, "boot.py")
         self.tflite_path = os.path.join(self.temp_dir, "mx.tflite")
         self.final_h5_model_path = os.path.join(self.temp_dir, "mx.h5")
-        self.best_h5_model_path  = os.path.join(self.temp_dir, "mx_best.h5")
+        self.best_h5_model_path = os.path.join(self.temp_dir, "mx_best.h5")
         self.log = Logger(file_path=self.log_file_path)
-    
+
     def __del__(self):
         # self.clean_temp_files()
         pass
-    
+
     def clean_temp_files(self):
         if os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir)
 
-
     def __on_progress(self, percent, msg):  # flag: progress
         self.log.i(f"progress: {percent}%, {msg}")
-    
+
     def __on_success(self, result_url, warn):
         self.log.i(f"success: out_dir: {result_url}")
         if warn:
@@ -131,7 +135,8 @@ class Train():
                 msg = info[1]
                 self.__on_fail(reason, msg, warning_msg)
             else:
-                self.__on_fail(TrainFailReason.ERROR_INTERNAL, "train error:{}".format(e), warning_msg)
+                self.__on_fail(TrainFailReason.ERROR_INTERNAL,
+                               "train error:{}".format(e), warning_msg)
             return False
 
     def train_process(self, log):
@@ -139,16 +144,16 @@ class Train():
             raise Exception if error occurred, a tuple: (TrainFailReason, error_message)
             @return result url
         '''
-        self.__on_progress(0, "start") # flag: progress
-        self.__on_progress(1, "start train") # flag: progress
-        
+        self.__on_progress(0, "start")  # flag: progress
+        self.__on_progress(1, "start train")  # flag: progress
+
         if self.train_type == TrainType.CLASSIFIER:
-            obj, prefix = self.classifier_train(log = log)
+            obj, prefix = self.classifier_train(log=log)
         elif self.train_type == TrainType.DETECTOR:
-            obj, prefix = self.detector_train(log = log)
+            obj, prefix = self.detector_train(log=log)
         else:
-            raise Exception(( "error train type, not suport"))
-        
+            raise Exception(("error train type, not suport"))
+
         # check warnings
         result_warning_msg = ""
         result_warning_msg_path = os.path.join(self.result_dir, "warning.txt")
@@ -168,44 +173,48 @@ class Train():
         time_now = datetime.now().strftime("%Y_%m_%d__%H_%M")
         result_dir_name = "{}".format(prefix)
         result_zip_name = "{}.zip".format(result_dir_name)
-        result_dir = os.path.join(os.path.dirname(self.result_dir), result_dir_name)
+        result_dir = os.path.join(os.path.dirname(
+            self.result_dir), result_dir_name)
         os.rename(self.result_dir, result_dir)
         root_dir = os.path.join(self.temp_dir, "result_root_dir")
         os.mkdir(root_dir)
-        shutil.move(result_dir, root_dir) # 移动 result 文件夹, 到一个 root_dir下,用以压缩
+        shutil.move(result_dir, root_dir)  # 移动 result 文件夹, 到一个 root_dir下,用以压缩
         result_zip = os.path.join(self.temp_dir, result_zip_name)
-        try: 
+        try:
             # self.zip_dir(root_dir, result_zip)
             self.zip_dir(os.path.join(root_dir, result_dir_name), result_zip)
         except Exception:
             log.e("zip result fail")
-            raise Exception((TrainFailReason.ERROR_INTERNAL, "zip result error"))
+            raise Exception(
+                (TrainFailReason.ERROR_INTERNAL, "zip result error"))
 
         # progress 99%
-        self.__on_progress(99, "pack ok") # flag: progress
+        self.__on_progress(99, "pack ok")  # flag: progress
 
         # complete
-        self.__on_progress(100, "task complete") # flag: progress
+        self.__on_progress(100, "task complete")  # flag: progress
         log.i("OK, task complete, result uri: {}".format(result_zip))
         return result_zip, result_warning_msg
 
     def classifier_train(self, log):
         # 检测 GPU 可用,选择一个可用的 GPU 使用
         try:
-            gpu = gpu_utils.select_gpu(memory_require = config.classifier_train_gpu_mem_require, tf_gpu_mem_growth=False)
+            gpu = gpu_utils.select_gpu(
+                memory_require=config.classifier_train_gpu_mem_require, tf_gpu_mem_growth=False)
         except Exception:
             gpu = None
         if gpu is None:
             if not config.allow_cpu:
                 log.e("no free GPU")
-                raise Exception((TrainFailReason.ERROR_NODE_BUSY, "node no enough GPU or GPU memory and not support CPU train"))
+                raise Exception((TrainFailReason.ERROR_NODE_BUSY,
+                                "node no enough GPU or GPU memory and not support CPU train"))
             log.i("no GPU, will use [CPU]")
         else:
             log.i("select", gpu)
 
         # 启动训练
         try:
-            classifier = Classifier(datasets_zip=self.datasets_zip_path, datasets_cls_dir=self.datasets_cls_dir,unpack_dir = self.temp_datasets_dir,
+            classifier = Classifier(datasets_zip=self.datasets_zip_path, datasets_cls_dir=self.datasets_cls_dir, unpack_dir=self.temp_datasets_dir,
                                     logger=log,
                                     max_classes_num=config.classifier_train_max_classes_num,
                                     min_images_num=config.classifier_train_one_class_min_img_num,
@@ -213,13 +222,16 @@ class Train():
                                     allow_reshape=False)
         except Exception as e:
             log.e("train datasets not valid: {}".format(e))
-            raise Exception((TrainFailReason.ERROR_PARAM, "datasets not valid: {}".format(str(e))))
+            raise Exception((TrainFailReason.ERROR_PARAM,
+                            "datasets not valid: {}".format(str(e))))
         try:
-            classifier.train(epochs=self.train_epochs,alpha=float(self.alpha),batch_size=self.batch_size, progress_cb=self.__on_train_progress)
+            classifier.train(epochs=self.train_epochs, alpha=float(
+                self.alpha), batch_size=self.batch_size, progress_cb=self.__on_train_progress)
         except Exception as e:
             log.e("train error: {}".format(e))
             traceback.print_exc()
-            raise Exception((TrainFailReason.ERROR_INTERNAL, "error occurred when train, error: {}".format(str(e)) ))
+            raise Exception((TrainFailReason.ERROR_INTERNAL,
+                            "error occurred when train, error: {}".format(str(e))))
 
         # 训练结束, 生成报告
         log.i("train ok, now generate report")
@@ -228,15 +240,19 @@ class Train():
         # 生成 kmodel
         log.i("now generate kmodel")
         classifier.save(self.tflite_path+".h5", tflite_path=self.tflite_path)
-        classifier.get_sample_images(config.sample_image_num, self.dataset_sample_images_path)
-        ok, msg = self.convert_to_kmodel(self.tflite_path, self.result_kmodel_path, config.ncc_kmodel_v3, self.dataset_sample_images_path)
+        classifier.get_sample_images(
+            config.sample_image_num, self.dataset_sample_images_path)
+        ok, msg = self.convert_to_kmodel(
+            self.tflite_path, self.result_kmodel_path, config.ncc_kmodel_v3, self.dataset_sample_images_path)
         if not ok:
             log.e("convert to kmodel fail")
-            raise Exception((TrainFailReason.ERROR_INTERNAL, "convert kmodel fail: {}".format(msg) ))
+            raise Exception((TrainFailReason.ERROR_INTERNAL,
+                            "convert kmodel fail: {}".format(msg)))
 
         # 拷贝模板文件
         log.i("copy template files")
-        template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "classifier", "template")
+        template_dir = os.path.join(os.path.dirname(
+            os.path.abspath(__file__)), "classifier", "template")
         self.__copy_template_files(template_dir, self.result_dir)
 
         # 写入 label 文件
@@ -249,22 +265,25 @@ class Train():
             target = 'labels = [] # labels'
             boot_py = boot_py.replace(target, replace)
             target = 'sensor.set_windowing((224, 224))'
-            replace = 'sensor.set_windowing(({}, {}))'.format(classifier.input_shape[1], classifier.input_shape[0])
+            replace = 'sensor.set_windowing(({}, {}))'.format(
+                classifier.input_shape[1], classifier.input_shape[0])
             boot_py = boot_py.replace(target, replace)
             f.write(boot_py)
 
         return classifier, config.classifier_result_file_name_prefix
 
     def detector_train(self, log):
-                # 检测 GPU 可用,选择一个可用的 GPU 使用
+        # 检测 GPU 可用,选择一个可用的 GPU 使用
         try:
-            gpu = gpu_utils.select_gpu(memory_require = config.detector_train_gpu_mem_require, tf_gpu_mem_growth=False)
+            gpu = gpu_utils.select_gpu(
+                memory_require=config.detector_train_gpu_mem_require, tf_gpu_mem_growth=False)
         except Exception:
             gpu = None
         if gpu is None:
             if not config.allow_cpu:
                 log.e("no free GPU")
-                raise Exception((TrainFailReason.ERROR_NODE_BUSY, "node no enough GPU or GPU memory and not support CPU train"))
+                raise Exception((TrainFailReason.ERROR_NODE_BUSY,
+                                "node no enough GPU or GPU memory and not support CPU train"))
             log.i("no GPU, will use [CPU]")
         else:
             log.i("select", gpu)
@@ -274,42 +293,44 @@ class Train():
                                 datasets_zip=self.datasets_zip_path,
                                 datasets_img_dir=self.datasets_img_dir,
                                 datasets_xml_dir=self.datasets_xml_dir,
-                                unpack_dir = self.temp_datasets_dir,
+                                unpack_dir=self.temp_datasets_dir,
                                 logger=log,
                                 alpha=self.alpha,
-                                max_classes_limit = config.detector_train_max_classes_num,
+                                max_classes_limit=config.detector_train_max_classes_num,
                                 one_class_min_images_num=config.detector_train_one_class_min_img_num,
                                 one_class_max_images_num=config.detector_train_one_class_max_img_num,
-                                allow_reshape = False)
+                                allow_reshape=False)
         except Exception as e:
             log.e("train datasets not valid: {}".format(e))
-            raise Exception((TrainFailReason.ERROR_PARAM, "datasets not valid: {}".format(str(e))))
+            raise Exception((TrainFailReason.ERROR_PARAM,
+                            "datasets not valid: {}".format(str(e))))
         try:
-            if self.alpha=='0.75':
-                weights='mobilenet_7_5_224_tf_no_top.h5'
-            elif self.alpha=='0.5':
-                weights='mobilenet_5_0_224_tf_no_top.h5'
-            elif self.alpha=='0.25':
-                weights='mobilenet_2_5_224_tf_no_top.h5'
+            if self.alpha == '0.75':
+                weights = 'mobilenet_7_5_224_tf_no_top.h5'
+            elif self.alpha == '0.5':
+                weights = 'mobilenet_5_0_224_tf_no_top.h5'
+            elif self.alpha == '0.25':
+                weights = 'mobilenet_2_5_224_tf_no_top.h5'
             else:
-                weights='mobilenet_1_0_224_tf_no_top.h5'
+                weights = 'mobilenet_1_0_224_tf_no_top.h5'
 
             detector.train(epochs=self.train_epochs,
-                    progress_cb=self.__on_train_progress,
-                    weights = weights,
-                    save_best_weights_path = self.best_h5_model_path,
-                    save_final_weights_path = self.final_h5_model_path,
-                    jitter=False,
-                    is_only_detect = False,
-                    batch_size = self.batch_size,
-                    train_times = 5,
-                    valid_times = 2,
-                    learning_rate=config.detector_train_learn_rate,
-                )
+                           progress_cb=self.__on_train_progress,
+                           weights=weights,
+                           save_best_weights_path=self.best_h5_model_path,
+                           save_final_weights_path=self.final_h5_model_path,
+                           jitter=False,
+                           is_only_detect=False,
+                           batch_size=self.batch_size,
+                           train_times=5,
+                           valid_times=2,
+                           learning_rate=config.detector_train_learn_rate,
+                           )
         except Exception as e:
             log.e("train error: {}".format(e))
             traceback.print_exc()
-            raise Exception((TrainFailReason.ERROR_INTERNAL, "error occurred when train, error: {}".format(str(e)) ))
+            raise Exception((TrainFailReason.ERROR_INTERNAL,
+                            "error occurred when train, error: {}".format(str(e))))
 
         # 训练结束, 生成报告
         log.i("train ok, now generate report")
@@ -318,15 +339,19 @@ class Train():
         # 生成 kmodel
         log.i("now generate kmodel")
         detector.save(tflite_path=self.tflite_path)
-        detector.get_sample_images(config.sample_image_num, self.dataset_sample_images_path)
-        ok, msg = self.convert_to_kmodel(self.tflite_path, self.result_kmodel_path, config.ncc_kmodel_v3, self.dataset_sample_images_path)
+        detector.get_sample_images(
+            config.sample_image_num, self.dataset_sample_images_path)
+        ok, msg = self.convert_to_kmodel(
+            self.tflite_path, self.result_kmodel_path, config.ncc_kmodel_v3, self.dataset_sample_images_path)
         if not ok:
             log.e("convert to kmodel fail")
-            raise Exception((TrainFailReason.ERROR_INTERNAL, "convert kmodel fail: {}".format(msg) ))
+            raise Exception((TrainFailReason.ERROR_INTERNAL,
+                            "convert kmodel fail: {}".format(msg)))
 
         # 拷贝模板文件
         log.i("copy template files")
-        template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "detector", "template")
+        template_dir = os.path.join(os.path.dirname(
+            os.path.abspath(__file__)), "detector", "template")
         self.__copy_template_files(template_dir, self.result_dir)
 
         # 写入 label 文件
@@ -339,10 +364,12 @@ class Train():
             target = 'labels = [] # labels'
             boot_py = boot_py.replace(target, replace)
             target = 'anchors = [] # anchors'
-            replace = 'anchors = [{}]'.format(', '.join(str(i) for i in detector.anchors))
+            replace = 'anchors = [{}]'.format(
+                ', '.join(str(i) for i in detector.anchors))
             boot_py = boot_py.replace(target, replace)
             target = 'sensor.set_windowing((224, 224))'
-            replace = 'sensor.set_windowing(({}, {}))'.format(detector.input_shape[1], detector.input_shape[0])
+            replace = 'sensor.set_windowing(({}, {}))'.format(
+                detector.input_shape[1], detector.input_shape[0])
             boot_py = boot_py.replace(target, replace)
             f.write(boot_py)
 
@@ -368,18 +395,20 @@ class Train():
                                 -- data1
                                 -- data2
         '''
-        shutil.make_archive(os.path.splitext(out_zip_file_path)[0], "zip", dir_path)
-        
+        shutil.make_archive(os.path.splitext(
+            out_zip_file_path)[0], "zip", dir_path)
 
     def convert_to_kmodel(self, tf_lite_path, kmodel_path, ncc_path, images_path):
         '''
             @ncc_path ncc 可执行程序路径
             @return (ok, msg) 是否出错 (bool, str)
         '''
-        print([ncc_path, "-i", "tflite", "-o", "k210model", "--dataset", images_path, tf_lite_path, kmodel_path])
-        p =subprocess.Popen([ncc_path, "-i", "tflite", "-o", "k210model", "--dataset", images_path, tf_lite_path, kmodel_path],stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        print(["./ncc.sh", ncc_path, "-i", "tflite", "-o", "k210model",
+              "--dataset", images_path, tf_lite_path, kmodel_path])
+        p = subprocess.Popen([ncc_path, "-i", "tflite", "-o", "k210model", "--dataset", images_path,
+                             tf_lite_path, kmodel_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
-            output, err = p.communicate( )
+            output, err = p.communicate()
             res = p.returncode
         except Exception as e:
             print("[ERROR] ", e)
@@ -391,8 +420,9 @@ class Train():
             print("[ERROR] ", res, output, err)
         return False, f"output:\n{output.encode('gpk')}\nerror:\n{err.encode('gpk')}"
 
+
 if __name__ == "__main__":
     # train_task = Train(TrainType.CLASSIFIER,  "../datasets/test_classifier_datasets.zip", "", "../out")
-    train_task = Train(TrainType.DETECTOR,  "../datasets/test_detector_xml_format.zip", "", "../out")
+    train_task = Train(TrainType.DETECTOR,
+                       "../datasets/test_detector_xml_format.zip", "", "../out")
     train_task.train()
-
