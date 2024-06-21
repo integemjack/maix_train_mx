@@ -1,5 +1,5 @@
-# 使用NVIDIA CUDA 11.8和Python 3.11基础镜像
-FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
+# 使用NVIDIA CUDA 11.8和Python基础镜像
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04
 
 # 设置环境变量以自动选择时区
 ENV DEBIAN_FRONTEND=noninteractive
@@ -9,7 +9,7 @@ ENV TZ=Etc/UTC
 WORKDIR /app
 
 # 更新包列表并安装必要的系统包
-RUN apt update && apt install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1-mesa-glx \
     nodejs \
     wget \
@@ -26,36 +26,32 @@ RUN apt update && apt install -y --no-install-recommends \
     pkg-config \
     libfreetype6-dev \
     libhdf5-dev \
-    && add-apt-repository ppa:deadsnakes/ppa && \
-    apt update && \
-    apt install -y --no-install-recommends python3.11 python3.11-dev python3.11-distutils tzdata && \
-    rm /usr/bin/python3 && ln -s /usr/bin/python3.11 /usr/bin/python3 && \
-    wget https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py && \
-    apt autoremove -y && \
-    apt clean && \
-    rm get-pip.py && \
+    curl \
+    git \
+    liblzma-dev \
+    libncurses5-dev \
+    python3.8 \
+    python3.8-dev \
+    python3-pip && \
+    apt-get install -y --fix-missing && \
+    apt-get autoremove -y && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+# 更新pip并安装必要的Python包
+RUN python3.8 -m pip install --upgrade pip && \
+    python3.8 -m pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare tensorflow-gpu && \
+    if [ -f requirements.txt ]; then python3.8 -m pip install -r requirements.txt; fi
 
 # 复制当前目录内容到容器中的/app目录
 COPY . /app
 
-# 更新pip并安装必要的Python包
-RUN pip install --upgrade pip
-
-# 分步骤安装库以便于调试
-RUN pip install cython scikit-learn
-RUN pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare
-
-# 单独安装matplotlib和h5py，以便在出错时进行调试
-RUN pip install matplotlib
-RUN pip install h5py
-
-# 安装requirements.txt中的其他依赖项
-RUN pip install -r requirements.txt
+# 解压 tools.zip 到 maix_train_mx 目录
+RUN unzip -o /app/tools.zip -d /app/maix_train_mx
 
 # 清理不必要的文件
-RUN rm -f requirements.txt Dockerfile
-RUN rm -rf docker
+RUN rm -f requirements.txt Dockerfile && \
+    rm -rf docker
 
 # 运行JupyterLab
 CMD ["jupyter", "lab", "--ip=0.0.0.0", "--allow-root", "--no-browser"]
