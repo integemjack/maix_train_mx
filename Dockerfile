@@ -35,14 +35,15 @@ RUN apt-get update && apt-get install -y \
     libncurses5-dev \
     python3.8 \
     python3.8-dev \
-    python3-pip && \
+    python3-pip \
+    python-is-python3 && \
     apt-get install -y --fix-missing && \
     apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # 更新pip并安装必要的Python包
-# RUN python3.8 -m pip install --upgrade pip
+RUN python3.8 -m pip install --upgrade pip
 RUN python3.8 -m pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare
 RUN python3.8 -m pip install -r requirements.txt
 
