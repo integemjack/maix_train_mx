@@ -53,8 +53,7 @@ RUN python3.8 -m pip install -r requirements.txt
 # RUN unzip -o /app/tools.zip -d /app/maix_train_mx
 
 # 清理不必要的文件
-RUN rm -f requirements.txt Dockerfile && \
-    rm -rf docker
+RUN rm -rf requirements.txt Dockerfile docker tools.zip .github .vscode .ipynb_checkpoints
 
 # 运行JupyterLab
 CMD ["jupyter", "lab", "--ip=0.0.0.0", "--allow-root", "--no-browser"]
