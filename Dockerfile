@@ -1,5 +1,5 @@
-# 使用较小的基础镜像进行最终镜像构建
-FROM nvidia/cuda:11.8.0-runtime-ubuntu20.04
+# 使用较小的基础镜像
+FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
 
 # 设置环境变量以自动选择时区
 ENV DEBIAN_FRONTEND=noninteractive
@@ -11,13 +11,17 @@ WORKDIR /app
 # 复制当前目录内容到容器中的 /app 目录
 COPY . /app
 
-# 更新包列表并安装必要的系统包，并清理缓存
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# 更新包列表，添加 Python 3.8 的 PPA，并安装必要的系统包
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    software-properties-common && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
     libgl1-mesa-glx \
     nodejs \
     wget \
     gnupg \
-    software-properties-common \
     build-essential \
     libatlas-base-dev \
     libssl-dev \
@@ -33,13 +37,30 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     python3.8 \
     python3.8-dev \
-    python3-pip
+    python3-pip \
+    python-is-python3 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# 复制构建结果到最终镜像
-# COPY --from=builder /app/nncase /app/nncase
+# 升级 pip、setuptools 和 wheel
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
-RUN pip install cython scikit-learn jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare
-RUN pip install -r /app/requirements.txt
+# 安装Python包
+RUN pip install --no-cache-dir \
+    cython \
+    scikit-learn \
+    jupyterlab \
+    ipywidgets \
+    jupyterlab_widgets \
+    ipycanvas \
+    Pillow \
+    numpy \
+    rich \
+    pickleshare \
+    utils
+
+# 安装requirements.txt中的依赖包
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # 运行 JupyterLab
 CMD ["jupyter", "lab", "--ip=0.0.0.0", "--allow-root", "--no-browser"]
