@@ -40,7 +40,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # 更新pip并安装必要的Python包
-# RUN python3.8 -m pip install --upgrade pip && \
+# RUN python3.8 -m pip install --upgrade pip==24.0
 RUN python3.8 -m pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare tensorflow-gpu && \
     if [ -f requirements.txt ]; then python3.8 -m pip install -r requirements.txt; fi
 
