@@ -1,5 +1,5 @@
 # 使用较小的基础镜像
-FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
+FROM nvidia/cuda:11.8.0-runtime-ubuntu20.04
 
 # 设置环境变量以自动选择时区
 ENV DEBIAN_FRONTEND=noninteractive
