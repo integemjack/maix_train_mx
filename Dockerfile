@@ -1,5 +1,5 @@
-# 使用较小的基础镜像
-FROM nvidia/cuda:11.8.0-runtime-ubuntu20.04
+# 使用NVIDIA CUDA 11.8和Python 3.11基础镜像
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
 
 # 设置环境变量以自动选择时区
 ENV DEBIAN_FRONTEND=noninteractive
@@ -8,20 +8,13 @@ ENV TZ=Etc/UTC
 # 设置工作目录
 WORKDIR /app
 
-# 复制当前目录内容到容器中的 /app 目录
-COPY . /app
-
-# 更新包列表，添加 Python 3.8 的 PPA，并安装必要的系统包
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    software-properties-common && \
-    add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
+# 更新包列表并安装必要的系统包
+RUN apt update && apt install -y --no-install-recommends \
     libgl1-mesa-glx \
     nodejs \
     wget \
     gnupg \
+    software-properties-common \
     build-essential \
     libatlas-base-dev \
     libssl-dev \
@@ -33,34 +26,36 @@ RUN apt-get update && \
     pkg-config \
     libfreetype6-dev \
     libhdf5-dev \
-    curl \
-    git \
-    python3.8 \
-    python3.8-dev \
-    python3-pip \
-    python-is-python3 && \
-    apt-get clean && \
+    && add-apt-repository ppa:deadsnakes/ppa && \
+    apt update && \
+    apt install -y --no-install-recommends python3.11 python3.11-dev python3.11-distutils tzdata && \
+    rm /usr/bin/python3 && ln -s /usr/bin/python3.11 /usr/bin/python3 && \
+    wget https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py && \
+    apt autoremove -y && \
+    apt clean && \
+    rm get-pip.py && \
     rm -rf /var/lib/apt/lists/*
 
-# 升级 pip、setuptools 和 wheel
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+# 复制当前目录内容到容器中的/app目录
+COPY . /app
 
-# 安装Python包
-RUN pip install --no-cache-dir \
-    cython \
-    scikit-learn \
-    jupyterlab \
-    ipywidgets \
-    jupyterlab_widgets \
-    ipycanvas \
-    Pillow \
-    numpy \
-    rich \
-    pickleshare \
-    utils
+# 更新pip并安装必要的Python包
+RUN pip install --upgrade pip
 
-# 安装requirements.txt中的依赖包
-RUN pip install --no-cache-dir -r /app/requirements.txt
+# 分步骤安装库以便于调试
+RUN pip install cython scikit-learn
+RUN pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare
 
-# 运行 JupyterLab
+# 单独安装matplotlib和h5py，以便在出错时进行调试
+RUN pip install matplotlib
+RUN pip install h5py
+
+# 安装requirements.txt中的其他依赖项
+RUN pip install -r requirements.txt
+
+# 清理不必要的文件
+RUN rm -f requirements.txt Dockerfile
+RUN rm -rf docker
+
+# 运行JupyterLab
 CMD ["jupyter", "lab", "--ip=0.0.0.0", "--allow-root", "--no-browser"]
