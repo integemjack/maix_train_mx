@@ -48,7 +48,7 @@ RUN python3.8 -m pip install --upgrade pip && \
 COPY . /app
 
 # 解压 tools.zip 到 maix_train_mx 目录
-RUN unzip -o /app/tools.zip -d /app/maix_train_mx
+# RUN unzip -o /app/tools.zip -d /app/maix_train_mx
 
 # 清理不必要的文件
 RUN rm -f requirements.txt Dockerfile && \
