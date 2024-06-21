@@ -40,8 +40,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # 更新pip并安装必要的Python包
-RUN python3.8 -m pip install --upgrade pip && \
-    python3.8 -m pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare tensorflow-gpu && \
+# RUN python3.8 -m pip install --upgrade pip && \
+RUN python3.8 -m pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare tensorflow-gpu && \
     if [ -f requirements.txt ]; then python3.8 -m pip install -r requirements.txt; fi
 
 # 复制当前目录内容到容器中的/app目录
