@@ -28,6 +28,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libhdf5-dev \
     curl \
     git \
+    unzip \
     liblzma-dev \
     libncurses5-dev \
     python3.8 \
