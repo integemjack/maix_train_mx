@@ -8,12 +8,14 @@ ENV TZ=Etc/UTC
 # 设置工作目录
 WORKDIR /app
 
+# 复制当前目录内容到容器中的/app目录
+COPY . /app
+
 # 更新包列表并安装必要的系统包
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y \
     libgl1-mesa-glx \
     nodejs \
     wget \
-    gnupg \
     software-properties-common \
     build-essential \
     libatlas-base-dev \
@@ -42,10 +44,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # 更新pip并安装必要的Python包
 # RUN python3.8 -m pip install --upgrade pip
 RUN python3.8 -m pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare
-RUN if [ -f requirements.txt ]; then python3.8 -m pip install -r requirements.txt; fi
+RUN python3.8 -m pip install -r requirements.txt
 
-# 复制当前目录内容到容器中的/app目录
-COPY . /app
+
 
 # 解压 tools.zip 到 maix_train_mx 目录
 # RUN unzip -o /app/tools.zip -d /app/maix_train_mx
