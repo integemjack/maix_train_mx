@@ -5,27 +5,27 @@
     @license Apache 2.0 © 2020 Sipeed Ltd
 '''
 
-from enum import Enum
-import json
-import traceback
-import zipfile
-import subprocess
-from datetime import datetime
-import time
-from train import config
-from utils.logger import Logger, Fake_Logger
-from utils import gpu_utils, isascii
-import shutil
-import tempfile
-import requests
-from detector import Detector
-from classifier import Classifier
-import os
-import sys
-root_path = os.path.abspath(os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), ".."))
+import os, sys
+root_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 sys.path.append(root_path)
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+
+from classifier import Classifier
+from detector import Detector
+import requests
+import tempfile
+import shutil
+from utils import gpu_utils, isascii
+from utils.logger import Logger, Fake_Logger
+from train import config
+import time
+from datetime import datetime
+import subprocess
+import zipfile
+import traceback
+import json
+from enum import Enum
 
 
 class TrainType(Enum):
