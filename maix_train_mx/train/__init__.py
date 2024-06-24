@@ -229,7 +229,7 @@ class Train():
         log.i("now generate kmodel")
         classifier.save(self.tflite_path+".h5", tflite_path=self.tflite_path)
         classifier.get_sample_images(config.sample_image_num, self.dataset_sample_images_path)
-        ok, msg = self.convert_to_kmodel(self.tflite_path, self.result_kmodel_path, config.ncc_arm_to_amd, config.ncc_kmodel_v3, self.dataset_sample_images_path)
+        ok, msg = self.convert_to_kmodel(self.tflite_path, self.result_kmodel_path, config.ncc_kmodel_v3, self.dataset_sample_images_path)
         if not ok:
             log.e("convert to kmodel fail")
             raise Exception((TrainFailReason.ERROR_INTERNAL, "convert kmodel fail: {}".format(msg) ))
@@ -319,7 +319,7 @@ class Train():
         log.i("now generate kmodel")
         detector.save(tflite_path=self.tflite_path)
         detector.get_sample_images(config.sample_image_num, self.dataset_sample_images_path)
-        ok, msg = self.convert_to_kmodel(self.tflite_path, self.result_kmodel_path, config.ncc_arm_to_amd, config.ncc_kmodel_v3, self.dataset_sample_images_path)
+        ok, msg = self.convert_to_kmodel(self.tflite_path, self.result_kmodel_path, config.ncc_kmodel_v3, self.dataset_sample_images_path)
         if not ok:
             log.e("convert to kmodel fail")
             raise Exception((TrainFailReason.ERROR_INTERNAL, "convert kmodel fail: {}".format(msg) ))
@@ -371,13 +371,13 @@ class Train():
         shutil.make_archive(os.path.splitext(out_zip_file_path)[0], "zip", dir_path)
         
 
-    def convert_to_kmodel(self, tf_lite_path, kmodel_path, ncc_arm_to_amd, ncc_path, images_path):
+    def convert_to_kmodel(self, tf_lite_path, kmodel_path, ncc_path, images_path):
         '''
             @ncc_path ncc 可执行程序路径
             @return (ok, msg) 是否出错 (bool, str)
         '''
-        print([ncc_arm_to_amd, ncc_path, "-i", "tflite", "-o", "k210model", "--dataset", images_path, tf_lite_path, kmodel_path])
-        p =subprocess.Popen([ncc_arm_to_amd, ncc_path, "-i", "tflite", "-o", "k210model", "--dataset", images_path, tf_lite_path, kmodel_path],stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        print([ncc_path, "-i", "tflite", "-o", "k210model", "--dataset", images_path, tf_lite_path, kmodel_path])
+        p =subprocess.Popen([ncc_path, "-i", "tflite", "-o", "k210model", "--dataset", images_path, tf_lite_path, kmodel_path],stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
             output, err = p.communicate( )
             res = p.returncode
