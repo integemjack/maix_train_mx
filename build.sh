@@ -31,3 +31,7 @@ docker buildx inspect mybuilder --bootstrap
 docker buildx build --platform linux/arm64,linux/amd64 -t integem/notebook:maix_train_mx_v3 --push .
 
 echo "Docker镜像构建并推送完成。"
+
+docker run --rm -it -p 8888:8888 integem/notebook:maix_train_mx_v3 bash -c "cd maix_train_mx && python train.py -t detector -di ../signal/images -dx ../signal/xml -ep 200 -ap 0.75 -bz 8 train && exit"
+
+echo "Docker测试完成。"
