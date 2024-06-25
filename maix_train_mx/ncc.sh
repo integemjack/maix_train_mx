@@ -10,8 +10,8 @@ ARCH=$(uname -m)
 # 函数：检查并安装缺失的软件包
 install_if_missing() {
     if ! dpkg -l | grep -q $1; then
-        sudo apt update
-        sudo apt install -y $1
+        apt update
+        apt install -y $1
     fi
 }
 
@@ -26,16 +26,16 @@ if [ "$ARCH" == "aarch64" ] || [ "$ARCH" == "armv7l" ]; then
     echo "检测到ARM架构，开始创建x86_64 chroot环境..."
 
     # 启用binfmt支持
-    sudo update-binfmts --enable qemu-x86_64
+    update-binfmts --enable qemu-x86_64
 
     # 创建x86_64 chroot环境（如果还不存在）
     if [ ! -d "$CHROOT_DIR" ]; then
-        sudo debootstrap --arch=amd64 focal $CHROOT_DIR http://archive.ubuntu.com/ubuntu/
-        sudo cp /usr/bin/qemu-x86_64-static $CHROOT_DIR/usr/bin/
+        debootstrap --arch=amd64 focal $CHROOT_DIR http://archive.ubuntu.com/ubuntu/
+        cp /usr/bin/qemu-x86_64-static $CHROOT_DIR/usr/bin/
     fi
 
     # 进入chroot环境并运行自定义命令
-    sudo chroot $CHROOT_DIR /usr/bin/qemu-x86_64-static /bin/bash -c "$CUSTOM_COMMAND"
+    chroot $CHROOT_DIR /usr/bin/qemu-x86_64-static /bin/bash -c "$CUSTOM_COMMAND"
 else
     echo "检测到非ARM架构，直接运行命令..."
     eval $CUSTOM_COMMAND
