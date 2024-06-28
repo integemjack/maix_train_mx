@@ -6,8 +6,9 @@ curr_dir = os.path.abspath(os.path.dirname(__file__))
 
 # kmodel convert
 # "/ncc/ncc"  # download from https://github.com/kendryte/nncase/releases/tag/v0.1.0-rc5
-ncc_kmodel_v3 = os.path.join(curr_dir, "..", "tools", "ncc", "ncc_v0.1/ncc")
-ncc_arm_to_amd = os.path.join(curr_dir, "..", "ncc.sh")
+ncc_kmodel_v3 = os.path.join(
+    "/app/maix_train_mx", "tools", "ncc", "ncc_v0.1/ncc")
+ncc_arm_to_amd = os.path.join("/app/maix_train_mx", "ncc.sh")
 sample_image_num = 20       # convert kmodel sample image (for quantizing)
 
 # train
