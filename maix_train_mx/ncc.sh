@@ -21,11 +21,15 @@ install_if_missing qemu-user
 install_if_missing qemu-user-static
 install_if_missing binfmt-support
 install_if_missing debootstrap
+install_if_missing apt-utils  # 添加apt-utils的安装
 
 if [ "$ARCH" == "aarch64" ] || [ "$ARCH" == "armv7l" ]; then
     echo "检测到ARM架构，开始创建x86_64 chroot环境..."
 
     # 启用binfmt支持
+    if ! grep -qs '/proc/sys/fs/binfmt_misc' /proc/mounts; then
+        mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
+    fi
     update-binfmts --enable qemu-x86_64
 
     # 创建x86_64 chroot环境（如果还不存在）
