@@ -36,6 +36,13 @@ RUN apt-get update && apt-get install -y \
     python3.8 \
     python3.8-dev \
     python3-pip \
+    qemu \
+    qemu-user \
+    qemu-user-static \
+    binfmt-support \
+    debootstrap \
+    apt-utils \
+    proot \
     python-is-python3 && \
     apt-get install -y --fix-missing && \
     apt-get autoremove -y && \
