@@ -35,3 +35,8 @@ echo "Docker镜像构建并推送完成。"
 docker run --pull always --rm -it -p 8888:8888 integem/notebook:maix_train_mx_v3 bash -c "cd maix_train_mx && python train.py -t detector -di ../signal/images -dx ../signal/xml -ep 200 -ap 0.75 -bz 8 train && exit"
 
 echo "Docker测试完成。"
+
+
+# docker run --privileged --pull always --rm -it -p 8888:8888 -v ./maix_train_mx:/app/maix_train_mx integem/notebook:maix_train_mx_v3 bash -c "chmod +x /app/maix_train_mx/ncc.sh && /app/maix_train_mx/ncc.sh /app/maix_train_mx/tools/ncc/ncc_v0.1/ncc -i tflite -o k210model --dataset /app/maix_train_mx/out/yolo_2024-07-02_02-53-42/sample_images /app/maix_train_mx/out/yolo_2024-07-02_02-53-42/mx.tflite /app/maix_train_mx/out/yolo_2024-07-02_02-53-42/result/mx.kmodel"
+
+# ['/app/maix_train_mx/ncc.sh', '/app/maix_train_mx/tools/ncc/ncc_v0.1/ncc', '-i', 'tflite', '-o', 'k210model', '--dataset', '/app/maix_train_mx/out/yolo_2024-07-02_02-53-42/sample_images', '/app/maix_train_mx/out/yolo_2024-07-02_02-53-42/mx.tflite', '/app/maix_train_mx/out/yolo_2024-07-02_02-53-42/result/mx.kmodel']
