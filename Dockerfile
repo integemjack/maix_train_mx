@@ -39,6 +39,8 @@ RUN apt-get update && apt-get install -y \
     binfmt-support \
     debootstrap \
     apt-utils \
+    proot \
+    strace \
     python-is-python3 && \
     apt-get install -y --fix-missing && \
     apt-get autoremove -y && \
