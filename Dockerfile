@@ -36,13 +36,9 @@ RUN apt-get update && apt-get install -y \
     python3.8 \
     python3.8-dev \
     python3-pip \
-    qemu \
-    qemu-user \
-    qemu-user-static \
     binfmt-support \
     debootstrap \
     apt-utils \
-    proot \
     python-is-python3 && \
     apt-get install -y --fix-missing && \
     apt-get autoremove -y && \
@@ -65,9 +61,10 @@ RUN rm -rf requirements.txt Dockerfile docker tools.zip .github .vscode .ipynb_c
 RUN chmod +x maix_train_mx/ncc.sh
 
 # 创建x86_64 chroot环境
-RUN mkdir -p /opt/chroot/x86_64 && \
-    debootstrap --arch=amd64 focal /opt/chroot/x86_64 http://archive.ubuntu.com/ubuntu/ && \
-    cp /usr/bin/qemu-x86_64-static /opt/chroot/x86_64/usr/bin/
+RUN mkdir -p /opt/chroot/x86_64
+RUN wget https://github.com/multiarch/qemu-user-static/releases/download/v6.1.0-7/qemu-x86_64-static -o /usr/bin/qemu-x86_64-static
+RUN chmod +x /usr/bin/qemu-x86_64-static
+RUN update-binfmts --enable qemu-x86_64
 
 # 运行JupyterLab
 CMD ["jupyter", "lab", "--ip=0.0.0.0", "--allow-root", "--no-browser"]
