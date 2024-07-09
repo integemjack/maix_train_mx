@@ -66,7 +66,7 @@ RUN conan profile update settings.compiler.libcxx=libstdc++11 default
 RUN conan profile update settings.compiler.cppstd=gnu20 default
 
 # 修改 CMakeLists.txt 文件以使用 C++14
-# RUN sed -i '1s/^/set(CMAKE_CXX_STANDARD 14)\nset(CMAKE_CXX_STANDARD_REQUIRED ON)\n/' ../CMakeLists.txt
+RUN sed -i '1s/^/set(CMAKE_CXX_STANDARD 14)\nset(CMAKE_CXX_STANDARD_REQUIRED ON)\n/' CMakeLists.txt
 
 RUN mkdir -p build
 
@@ -79,8 +79,6 @@ ENV CC=/usr/bin/gcc-10
 ENV CXX=/usr/bin/g++-10
 
 RUN cmake -S .. -B . -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DPython3_EXECUTABLE=/usr/bin/python3.7 -DPython3_INCLUDE_DIR=/usr/include/python3.7 -DPython3_LIBRARY=/usr/lib/x86_64-linux-gnu/libpython3.7m.so
-
-
 
 RUN cmake --build . --config Release
 RUN cmake --install . --prefix install
