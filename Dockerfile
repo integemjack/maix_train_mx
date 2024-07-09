@@ -64,8 +64,8 @@ RUN chmod +x maix_train_mx/ncc.sh
 
 # 创建x86_64 chroot环境
 RUN mkdir -p /opt/chroot/x86_64
-RUN curl https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-x86_64-static -O $CHROOT_DIR/usr/bin/qemu-x86_64-static
-RUN chmod +x /usr/bin/qemu-x86_64-static
+RUN curl https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-x86_64-static -O /opt/chroot/x86_64/usr/bin/qemu-x86_64-static
+RUN chmod +x /opt/chroot/x86_64/usr/bin/qemu-x86_64-static
 # RUN update-binfmts --enable qemu-x86_64
 
 # 运行JupyterLab
