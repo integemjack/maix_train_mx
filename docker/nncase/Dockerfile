@@ -67,7 +67,7 @@ RUN conan profile update settings.compiler.cppstd=gnu20 default
 # 手动添加旧版本 hkg 依赖
 WORKDIR /app/nncase
 
-# RUN conan install . --build missing -o hkg:shared=True
+RUN conan install . --build missing -o hkg:shared=True
 
 # 修改 CMakeLists.txt 文件以使用 C++20 并禁用 psABI 警告
 RUN sed -i '1s/^/set(CMAKE_CXX_STANDARD 20)\nset(CMAKE_CXX_STANDARD_REQUIRED ON)\nadd_compile_options(-Wno-psabi)\n/' CMakeLists.txt
@@ -76,7 +76,7 @@ RUN mkdir -p build
 
 WORKDIR /app/nncase/build
 
-RUN conan install .. --build missing -o hkg:shared=True
+RUN conan install .. --build missing
 
 # 设置 C 和 C++ 编译器环境变量
 ENV CC=/usr/bin/gcc-10
