@@ -1,5 +1,3 @@
-# 使用 NVIDIA CUDA 11.8 和 Python 基础镜像
-# FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04 as builder
 FROM ubuntu:20.04
 
 # 设置环境变量以自动选择时区
@@ -82,3 +80,4 @@ RUN cmake -S .. -B . -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DPy
 
 RUN cmake --build . --config Release
 RUN cmake --install . --prefix install
+
