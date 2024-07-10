@@ -44,13 +44,14 @@ RUN add-apt-repository ppa:deadsnakes/ppa && \
     apt-get install -y --no-install-recommends \
     python3.7 \
     python3.7-dev \
-    python3.7-distutils \
-    python3-pip && \
+    python3.7-distutils && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# 安装 pip 并升级
+RUN wget https://bootstrap.pypa.io/get-pip.py && python3.7 get-pip.py && rm get-pip.py
+
 # 安装 conan 1.x 版本和最新的 cmake
-RUN python3.7 -m pip install --upgrade pip
 RUN python3.7 -m pip install conan==1.59 cmake
 
 # 克隆 nncase 源代码并构建
@@ -62,6 +63,9 @@ RUN conan remote add sunnycase https://conan.sunnycase.moe
 RUN conan profile new default --detect
 RUN conan profile update settings.compiler.libcxx=libstdc++11 default
 RUN conan profile update settings.compiler.cppstd=gnu20 default
+
+# 手动添加旧版本 hkg 依赖
+RUN conan install .. --build missing -o hkg:shared=True
 
 # 修改 CMakeLists.txt 文件以使用 C++20 并禁用 psABI 警告
 RUN sed -i '1s/^/set(CMAKE_CXX_STANDARD 20)\nset(CMAKE_CXX_STANDARD_REQUIRED ON)\nadd_compile_options(-Wno-psabi)\n/' CMakeLists.txt
@@ -81,3 +85,5 @@ RUN cmake -S .. -B . -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DPy
 RUN cmake --build . --config Release
 RUN cmake --install . --prefix install
 
+# 设置默认工作目录
+WORKDIR /app
