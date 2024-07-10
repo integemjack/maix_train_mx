@@ -49,7 +49,7 @@ RUN add-apt-repository ppa:deadsnakes/ppa && \
     rm -rf /var/lib/apt/lists/*
 
 # 安装 pip 并升级
-RUN wget https://bootstrap.pypa.io/get-pip.py && python3.7 get-pip.py && rm get-pip.py
+RUN wget https://bootstrap.pypa.io/pip/3.7/get-pip.py && python3.7 get-pip.py && rm get-pip.py
 
 # 安装 conan 1.x 版本和最新的 cmake
 RUN python3.7 -m pip install conan==1.59 cmake
