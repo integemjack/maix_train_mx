@@ -3,28 +3,28 @@
 CHROOT_DIR="/opt/chroot/x86_64"
 ARCH=$(uname -m)
 
-install_if_missing() {
-    if ! dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -q "ok installed"; then
-        apt-get update
-        apt-get install -y $1 || { echo "Failed to install $1"; exit 1; }
-    fi
-}
+# install_if_missing() {
+#     if ! dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -q "ok installed"; then
+#         apt-get update
+#         apt-get install -y $1 || { echo "Failed to install $1"; exit 1; }
+#     fi
+# }
 
 # 安装必要的软件包
-REQUIRED_PACKAGES=("qemu" "qemu-user" "qemu-user-static" "debootstrap")
-for pkg in "${REQUIRED_PACKAGES[@]}"; do
-    install_if_missing $pkg
-done
+# REQUIRED_PACKAGES=("qemu" "qemu-user" "qemu-user-static" "debootstrap")
+# for pkg in "${REQUIRED_PACKAGES[@]}"; do
+#     install_if_missing $pkg
+# done
 
 # 如果是ARM架构，创建并配置x86_64的chroot环境
 if [ "$ARCH" == "aarch64" ] || [ "$ARCH" == "armv7l" ]; then
     echo "Detected ARM architecture, creating x86_64 chroot environment..."
 
-    if [ ! -d "$CHROOT_DIR" ]; then
-        debootstrap --arch=amd64 focal $CHROOT_DIR http://archive.ubuntu.com/ubuntu/ || { echo "Failed to create chroot environment"; exit 1; }
-        mkdir -p $CHROOT_DIR/usr/bin
-        cp /usr/bin/qemu-x86_64-static $CHROOT_DIR/usr/bin/
-    fi
+    # if [ ! -d "$CHROOT_DIR" ]; then
+    #     debootstrap --arch=amd64 focal $CHROOT_DIR http://archive.ubuntu.com/ubuntu/ || { echo "Failed to create chroot environment"; exit 1; }
+    #     mkdir -p $CHROOT_DIR/usr/bin
+    #     cp /usr/bin/qemu-x86_64-static $CHROOT_DIR/usr/bin/
+    # fi
 
     cp -rf /app $CHROOT_DIR/app
 
