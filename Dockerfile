@@ -67,7 +67,7 @@ RUN if [ "$(uname -m)" = "aarch64" ]; then \
     mkdir -p /opt/chroot/x86_64 && \
     wget https://github.com/multiarch/qemu-user-static/releases/download/v6.1.0-7/qemu-x86_64-static -o /usr/bin/qemu-x86_64-static && \
     chmod +x /usr/bin/qemu-x86_64-static && \
-    update-binfmts --enable qemu-x86_64; && \
+    update-binfmts --enable qemu-x86_64; \
     fi
 
 # 运行JupyterLab
