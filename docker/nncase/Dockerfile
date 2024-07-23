@@ -32,7 +32,8 @@ RUN apt-get update && \
     gcc-10 g++-10 \
     ninja-build \
     libvulkan-dev \
-    vulkan-utils && \
+    vulkan-utils \
+    gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 40 && \
@@ -55,7 +56,7 @@ RUN wget https://bootstrap.pypa.io/pip/3.7/get-pip.py && python3.7 get-pip.py &&
 RUN python3.7 -m pip install conan==1.59 cmake
 
 # 克隆 nncase 源代码并构建
-RUN git clone -b release/1.0 https://github.com/kendryte/nncase.git --recursive
+COPY . /app
 
 WORKDIR /app/nncase
 
@@ -73,6 +74,18 @@ WORKDIR /app/nncase/build
 
 RUN conan install .. --build missing
 
+# 创建并复制CMake工具链文件
+RUN mkdir -p /app/nncase/toolchains
+RUN echo "SET(CMAKE_SYSTEM_NAME Linux)" > /app/nncase/toolchains/arm-linux-gnueabihf.cmake
+RUN echo "SET(CMAKE_SYSTEM_PROCESSOR arm)" >> /app/nncase/toolchains/arm-linux-gnueabihf.cmake
+RUN echo "SET(CMAKE_C_COMPILER /usr/bin/arm-linux-gnueabihf-gcc)" >> /app/nncase/toolchains/arm-linux-gnueabihf.cmake
+RUN echo "SET(CMAKE_CXX_COMPILER /usr/bin/arm-linux-gnueabihf-g++)" >> /app/nncase/toolchains/arm-linux-gnueabihf.cmake
+RUN echo "SET(CMAKE_FIND_ROOT_PATH /usr/arm-linux-gnueabihf)" >> /app/nncase/toolchains/arm-linux-gnueabihf.cmake
+RUN echo "SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)" >> /app/nncase/toolchains/arm-linux-gnueabihf.cmake
+RUN echo "SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)" >> /app/nncase/toolchains/arm-linux-gnueabihf.cmake
+RUN echo "SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)" >> /app/nncase/toolchains/arm-linux-gnueabihf.cmake
+RUN echo "SET(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)" >> /app/nncase/toolchains/arm-linux-gnueabihf.cmake
+
 # 设置 C 和 C++ 编译器环境变量
 ENV CC=/usr/bin/gcc-10
 ENV CXX=/usr/bin/g++-10
@@ -80,7 +93,7 @@ ENV CXX=/usr/bin/g++-10
 # 修改 CMakeLists.txt 文件以使用 C++20 并禁用 psABI 警告
 RUN sed -i '1s/^/set(CMAKE_CXX_STANDARD 20)\nset(CMAKE_CXX_STANDARD_REQUIRED ON)\nadd_compile_options(-Wno-psabi)\n/' ../CMakeLists.txt
 
-RUN cmake -S .. -B . -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DPython3_EXECUTABLE=/usr/bin/python3.7 -DPython3_INCLUDE_DIR=/usr/include/python3.7 -DPython3_LIBRARY=/usr/lib/x86_64-linux-gnu/libpython3.7m.so
+RUN cmake -S .. -B . -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=/app/nncase/toolchains/arm-linux-gnueabihf.cmake -DBUILD_TESTING=ON -DPython3_EXECUTABLE=/usr/bin/python3.7 -DPython3_INCLUDE_DIR=/usr/include/python3.7 -DPython3_LIBRARY=/usr/lib/x86_64-linux-gnu/libpython3.7m.so
 
 RUN cmake --build . --config Release
 RUN cmake --install . --prefix install
