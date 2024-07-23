@@ -28,7 +28,7 @@ docker buildx create --name mybuilder --use
 docker buildx inspect mybuilder --bootstrap
 
 # 使用 Buildx 构建并推送多平台镜像
-docker buildx build --platform linux/arm64,linux/amd64 -t integem/notebook:maix_train_mx_v4 --push .
+docker buildx build --platform linux/arm64,linux/amd64 -t integem/notebook:maix_train_mx_v4 --push . || { echo "Failed to build $1"; exit 1; }
 
 echo "Docker镜像构建并推送完成。"
 
