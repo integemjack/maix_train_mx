@@ -62,14 +62,12 @@ RUN rm -rf requirements.txt Dockerfile docker tools.zip .github .vscode .ipynb_c
 
 RUN chmod +x maix_train_mx/ncc.sh
 
-# 创建x86_64 chroot环境
-RUN mkdir -p /opt/chroot/x86_64
-# RUN curl https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-x86_64-static -O /opt/chroot/x86_64/usr/bin/qemu-x86_64-static
-# RUN chmod +x /opt/chroot/x86_64/usr/bin/qemu-x86_64-static
-# RUN update-binfmts --enable qemu-x86_64
-RUN debootstrap --arch=amd64 focal $CHROOT_DIR http://archive.ubuntu.com/ubuntu/ || { echo "Failed to create chroot environment"; exit 1; }
-RUN mkdir -p $CHROOT_DIR/usr/bin
-RUN cp /usr/bin/qemu-x86_64-static $CHROOT_DIR/usr/bin/
+# 创建x86_64 chroot环境，仅在ARM平台上执行
+RUN if [ "$(uname -m)" = "aarch64" ]; then \
+    mkdir -p /opt/chroot/x86_64 && \
+    curl -L https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-x86_64-static -o /opt/chroot/x86_64/usr/bin/qemu-x86_64-static && \
+    chmod +x /opt/chroot/x86_64/usr/bin/qemu-x86_64-static; \
+    fi
 
 # 运行JupyterLab
 CMD ["jupyter", "lab", "--ip=0.0.0.0", "--allow-root", "--no-browser"]
