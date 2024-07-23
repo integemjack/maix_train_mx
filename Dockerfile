@@ -64,7 +64,7 @@ RUN chmod +x maix_train_mx/ncc.sh
 
 # 创建x86_64 chroot环境，仅在ARM平台上执行
 RUN if [ "$(uname -m)" = "aarch64" ]; then \
-    mkdir -p /opt/chroot/x86_64 && \
+    mkdir -p /opt/chroot/x86_64/usr/bin/ && \
     curl -L https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-x86_64-static -o /opt/chroot/x86_64/usr/bin/qemu-x86_64-static && \
     chmod +x /opt/chroot/x86_64/usr/bin/qemu-x86_64-static; \
     fi
