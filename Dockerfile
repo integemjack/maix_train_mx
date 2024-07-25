@@ -58,7 +58,7 @@ RUN python3.8 -m pip install -r requirements.txt
 RUN unzip -o tools.zip -d maix_train_mx/
 
 # 清理不必要的文件
-RUN rm -rf requirements.txt Dockerfile docker tools.zip .github .vscode .ipynb_checkpoints build.sh
+RUN rm -rf requirements.txt Dockerfile docker tools.zip .github .vscode .ipynb_checkpoints build.sh output.log
 
 RUN chmod +x maix_train_mx/ncc.sh
 
