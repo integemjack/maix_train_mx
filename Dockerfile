@@ -211,8 +211,6 @@ RUN apt-get update && apt-get install -y \
     unzip \
     liblzma-dev \
     libncurses5-dev \
-    python3.8 \
-    python3.8-dev \
     python3-pip \
     binfmt-support \
     debootstrap \
