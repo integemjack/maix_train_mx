@@ -226,7 +226,7 @@ RUN apt-get update && apt-get install -y \
 # 更新pip并安装必要的Python包
 RUN pip install --upgrade pip
 RUN pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare
-RUN pip install -r requirements.txt
+RUN cd yolov5 && pip install -r requirements.txt
 
 
 # 清理不必要的文件
