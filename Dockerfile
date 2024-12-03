@@ -46,14 +46,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 10
 
-ENV CMAKE_VERSION 3.25.3
+# ENV CMAKE_VERSION 3.25.3
 
-RUN wget https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION-linux-x86_64.sh \
-    --no-check-certificate \
-    -q -O /tmp/cmake-install.sh \
-    && chmod u+x /tmp/cmake-install.sh \
-    && /tmp/cmake-install.sh --skip-license --prefix=/usr/local \
-    && rm /tmp/cmake-install.sh
+# RUN wget https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION-linux-x86_64.sh \
+#     --no-check-certificate \
+#     -q -O /tmp/cmake-install.sh \
+#     && chmod u+x /tmp/cmake-install.sh \
+#     && /tmp/cmake-install.sh --skip-license --prefix=/usr/local \
+#     && rm /tmp/cmake-install.sh
 
 ENV CATCH3_VERSION 3.4.0
 
