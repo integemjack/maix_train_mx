@@ -226,9 +226,9 @@ RUN apt-get update && apt-get install -y \
     rm -rf /var/lib/apt/lists/*
 
 # 更新pip并安装必要的Python包
-RUN python3.8 -m pip install --upgrade pip
-RUN python3.8 -m pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare
-RUN python3.8 -m pip install -r requirements.txt
+RUN pip install --upgrade pip
+RUN pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare
+RUN pip install -r requirements.txt
 
 
 # 清理不必要的文件
