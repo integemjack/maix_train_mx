@@ -9,7 +9,7 @@ ENV TZ=Etc/UTC
 WORKDIR /app
 
 # 复制当前目录内容到容器中的/app目录
-COPY . /app
+COPY ./maixcam-train /app
 
 # 更新包列表并安装必要的系统包
 RUN apt-get update && apt-get install -y \
@@ -50,22 +50,24 @@ RUN apt-get update && apt-get install -y \
 # 更新pip并安装必要的Python包
 RUN python3.8 -m pip install --upgrade pip
 RUN python3.8 -m pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare
-RUN python3.8 -m pip install -r requirements.txt
+# RUN python3.8 -m pip install -r requirements.txt
 
 
 
 # 解压 tools.zip 到 maix_train_mx 目录
-RUN unzip -o tools.zip -d maix_train_mx/
+# RUN unzip -o tools.zip -d maix_train_mx/
 
 # 清理不必要的文件
-RUN rm -rf requirements.txt Dockerfile docker tools.zip .github .vscode .ipynb_checkpoints build.sh output.log
+# RUN rm -rf requirements.txt Dockerfile docker tools.zip .github .vscode .ipynb_checkpoints build.sh output.log
 
-RUN chmod +x maix_train_mx/ncc.sh
+# RUN chmod +x maix_train_mx/ncc.sh
 
 # 创建x86_64 chroot环境
 RUN mkdir -p /opt/chroot/x86_64
 RUN debootstrap --arch=amd64 focal /opt/chroot/x86_64 http://archive.ubuntu.com/ubuntu/
 RUN update-binfmts --enable qemu-x86_64
+
+RUN cd yolov5 && pip install -r requirements.txt
 
 # 运行JupyterLab
 CMD ["jupyter", "lab", "--ip=0.0.0.0", "--allow-root", "--no-browser"]

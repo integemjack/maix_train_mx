@@ -28,11 +28,11 @@ docker buildx create --name mybuilder --use
 docker buildx inspect mybuilder --bootstrap
 
 # 使用 Buildx 构建并推送多平台镜像
-docker buildx build --platform linux/arm64,linux/amd64 -t integem/notebook:maix_train_mx_v4 --push . || { echo "Failed to build $1"; exit 1; }
+docker buildx build --platform linux/arm64,linux/amd64 -t integem/notebook:maix_train_mx_v5 --push . || { echo "Failed to build $1"; exit 1; }
 
 echo "Docker镜像构建并推送完成。"
 
-docker run --privileged --pull always --rm -it -p 8888:8888 integem/notebook:maix_train_mx_v4 bash -c "cd maix_train_mx && python train.py -t detector -di ../signal/images -dx ../signal/xml -ep 200 -ap 0.75 -bz 8 train && exit"
+docker run --privileged --pull always --rm -it -p 8888:8888 integem/notebook:maix_train_mx_v5 bash -c "python yolov5/train.py --img 224 --epoch 30 --data duck1k_dataset.yaml --weights yolov5s.pt --workers 0 && python yolov5/export.py --weight yolov5/runs/train/exp/weights/best.pt --include onnx --img 224 320 && exit"
 
 echo "Docker测试完成。"
 
