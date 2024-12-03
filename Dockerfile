@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # tools
     ninja-build \
     parallel \
-    curl wget \
+    curl wget cmake \
     unzip \
     graphviz \
     bsdmainutils \
