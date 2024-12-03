@@ -187,7 +187,7 @@ COPY --from=caffe_builder /root/caffe/python/caffe /usr/local/python_packages/ca
 ENV LC_ALL=C.UTF-8
 WORKDIR /workspace
 
-COPY maix_train_mx /workspace
+COPY ./maix_train_mx /workspace
 
 # 更新包列表并安装必要的系统包
 RUN apt-get update && apt-get install -y \
@@ -226,7 +226,7 @@ RUN apt-get update && apt-get install -y \
 # 更新pip并安装必要的Python包
 RUN pip install --upgrade pip
 RUN pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy rich pickleshare
-RUN cd yolov5 && pip install -r requirements.txt
+
 
 
 # 清理不必要的文件
@@ -238,6 +238,8 @@ RUN cd yolov5 && pip install -r requirements.txt
 RUN mkdir -p /opt/chroot/x86_64
 RUN debootstrap --arch=amd64 focal /opt/chroot/x86_64 http://archive.ubuntu.com/ubuntu/
 RUN update-binfmts --enable qemu-x86_64
+
+RUN cd yolov5 && pip install -r requirements.txt
 
 # 运行JupyterLab
 CMD ["jupyter", "lab", "--ip=0.0.0.0", "--allow-root", "--no-browser"]
