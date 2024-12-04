@@ -1,0 +1,7 @@
+path: ../datasets/dog_cat
+train: images/train2017
+val: images/val2017
+
+names:
+    0: cat
+    1: dog

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<annotation>
+  <filename>218563_251.jpg</filename>
+  <size>
+    <width>160</width>
+    <height>120</height>
+    <depth>3</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>duck</name>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <occluded>0</occluded>
+    <bndbox>
+      <xmin>4</xmin>
+      <ymin>56</ymin>
+      <xmax>60</xmax>
+      <ymax>102</ymax>
+    </bndbox>
+  </object>
+</annotation>
