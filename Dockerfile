@@ -235,9 +235,9 @@ RUN pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy 
 # RUN chmod +x maix_train_mx/ncc.sh
 
 # 创建x86_64 chroot环境
-RUN mkdir -p /opt/chroot/x86_64
-RUN debootstrap --arch=amd64 focal /opt/chroot/x86_64 http://archive.ubuntu.com/ubuntu/
-RUN update-binfmts --enable qemu-x86_64
+# RUN mkdir -p /opt/chroot/x86_64
+# RUN debootstrap --arch=amd64 focal /opt/chroot/x86_64 http://archive.ubuntu.com/ubuntu/
+# RUN update-binfmts --enable qemu-x86_64
 
 RUN cd yolov5 && pip install -r requirements.txt
 
