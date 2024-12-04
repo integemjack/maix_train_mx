@@ -187,7 +187,7 @@ COPY --from=caffe_builder /root/caffe/python/caffe /usr/local/python_packages/ca
 ENV LC_ALL=C.UTF-8
 WORKDIR /workspace
 
-COPY ./maixcam-train /workspace
+COPY ./train /workspace
 
 # 更新包列表并安装必要的系统包
 RUN apt-get update && apt-get install -y \
@@ -240,6 +240,9 @@ RUN pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy 
 # RUN update-binfmts --enable qemu-x86_64
 
 RUN cd yolov5 && pip install -r requirements.txt
+
+RUN cp -rf ./tpu-mlir/python/tools/* /usr/local/bin/
+RUN pip install tpu_mlir
 
 # 运行JupyterLab
 CMD ["jupyter", "lab", "--ip=0.0.0.0", "--allow-root", "--no-browser"]
