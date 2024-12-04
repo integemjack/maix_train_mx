@@ -241,7 +241,7 @@ RUN pip install jupyterlab ipywidgets jupyterlab_widgets ipycanvas Pillow numpy 
 
 RUN cd yolov5 && pip install -r requirements.txt
 
-RUN cp -rf ./tpu-mlir/python/tools/* /usr/local/bin/
+RUN cp -rf ./tpu-mlir/python/tools/*.py /usr/local/bin/
 RUN pip install tpu_mlir
 
 # 运行JupyterLab
