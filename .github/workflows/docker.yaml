@@ -25,7 +25,7 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v3
       with:
-        context: ./nncase
+        context: .
         push: true
         platforms: linux/amd64,linux/arm64
-        tags: ${{ secrets.DOCKER_USERNAME }}/notebook:nncase
+        tags: ${{ secrets.DOCKER_USERNAME }}/notebook:maix_train_mx_v5.2
