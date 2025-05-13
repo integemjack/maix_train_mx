@@ -1,4 +1,4 @@
-name: Build and Push Multi-Platform Docker Image
+name: Test
 
 on: workflow_dispatch
 
