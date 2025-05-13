@@ -1,6 +1,6 @@
 name: Build and Push Multi-Platform Docker Image
 
-on: [workflow_dispatch]
+on: [push, workflow_dispatch]
 
 jobs:
   build:
