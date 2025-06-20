@@ -1,3 +1,5 @@
+DEBUG = False
+
 image_path = ""
 image_only = ""
 # images_files = os.listdir(JPEGImages)
@@ -118,6 +120,7 @@ def getOneImage():
     image_only = image_files[index]
     # Open the image file
     image_path = os.path.join(JPEGImages, image_only)
+    debug_print(f"当前图片: {image_only} (索引: {index})")
 
 def getAnnotations():
     global image_only
@@ -152,6 +155,10 @@ def getAnnotations():
     # 读取TXT文件中的YOLO格式标注
     with open(txt_file, 'r') as f:
         lines = f.readlines()
+    
+    debug_print(f"读取标注文件: {txt_file}")
+    debug_print(f"文件内容行数: {len(lines)}")
+    debug_print(f"图片尺寸: {width} x {height}")
     
     # Loop over each line in the TXT file
     for index, line in enumerate(lines):
@@ -198,10 +205,30 @@ def getAnnotations():
         points[index]['bottom_x_widget'].value = xmax
         points[index]['bottom_y_widget'].value = ymax
 
-        print(f"加载标注: {category} 坐标: ({xmin}, {ymin}) - ({xmax}, {ymax})")
+        debug_print(f"加载标注: {category} 坐标: ({xmin}, {ymin}) - ({xmax}, {ymax})")
+        debug_print(f"归一化坐标: x_center={x_center_norm:.4f}, y_center={y_center_norm:.4f}, w={w_norm:.4f}, h={h_norm:.4f}")
+        debug_print(f"绝对坐标: x_center={x_center:.1f}, y_center={y_center:.1f}, w={w:.1f}, h={h:.1f}")
+        debug_print("---")
 
 
 points_widget = ipywidgets.VBox([])
+
+# 创建一个输出区域用于显示调试信息
+debug_output = ipywidgets.Output()
+
+def debug_print(message):
+    """在调试输出区域显示信息"""
+    if DEBUG:
+        with debug_output:
+            print(message)
+
+def clear_debug():
+    """清除调试输出"""
+    debug_output.clear_output()
+
+# 创建清除调试信息的按钮
+clear_debug_button = ipywidgets.Button(description='清除调试信息')
+clear_debug_button.on_click(lambda b: clear_debug())
 
 def add_ponit(p, index):
     global last_category
@@ -339,6 +366,7 @@ def save_image(b):
     #     for category in CATEGORIES:
     #         file.write(category + '\n')
     
+    debug_print(f'图片 {filename} 已保存，标注框数量: {len([p for p in points if p["topX"] >= 0 and p["topY"] >= 0 and p["bottomX"] >= 0 and p["bottomY"] >= 0])}')
     print('Image saved.')
 
 # Add this to make the button call the function when clicked
@@ -395,6 +423,17 @@ add_point_button.on_click(add_point_new)
 
 
 
+# 根据DEBUG模式决定是否包含调试信息区域
+if DEBUG:
+    debug_widgets = [
+        # 添加调试输出区域
+        ipywidgets.HTML(value="<h4>调试信息:</h4>"),
+        ipywidgets.HBox([clear_debug_button]),
+        debug_output,
+    ]
+else:
+    debug_widgets = []
+
 data_collection_widget = ipywidgets.VBox([
     ipywidgets.HBox([pre_button, canvas,next_button  ]),
     
@@ -403,7 +442,7 @@ data_collection_widget = ipywidgets.VBox([
     save_button,
     ipywidgets.HBox([pre_button,next_button  ]),
     
-])
+] + debug_widgets)
 
 getOneImage()
 getAnnotations()
