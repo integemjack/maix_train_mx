@@ -123,7 +123,7 @@ def getAnnotations():
     global image_only
     global add_point, points, point, last_category
 
-    xml = os.path.join(Annotations, image_only.split(".")[0] + ".xml")
+    txt_file = os.path.join(Annotations, image_only.split(".")[0] + ".txt")
 
     point = 0
     for index, p in enumerate(points):
@@ -131,7 +131,7 @@ def getAnnotations():
     new_children = []
     points_widget.children = tuple(new_children)
     
-    if not os.path.exists(xml):
+    if not os.path.exists(txt_file):
         p = add_ponit({
             "cat": last_category,
             "top": True,
@@ -144,37 +144,61 @@ def getAnnotations():
         points.append(p)
         setDefalutChoose(p, 0)
         return
-    tree = ET.parse(xml)
-    root = tree.getroot()
     
-    # Loop over each 'object' element in the XML file
-    for index, obj in enumerate(root.iter('object')):
+    # 获取图片尺寸用于坐标转换
+    img = cv2.imread(image_path)
+    height, width, channels = img.shape
+    
+    # 读取TXT文件中的YOLO格式标注
+    with open(txt_file, 'r') as f:
+        lines = f.readlines()
+    
+    # Loop over each line in the TXT file
+    for index, line in enumerate(lines):
+        line = line.strip()
+        if not line:  # 跳过空行
+            continue
+            
+        parts = line.split()
+        if len(parts) != 5:  # YOLO格式应该有5个值
+            continue
+            
+        category = parts[0]
+        x_center_norm = float(parts[1])
+        y_center_norm = float(parts[2])
+        w_norm = float(parts[3])
+        h_norm = float(parts[4])
+        
+        # 从归一化坐标转换为绝对坐标
+        x_center = x_center_norm * width
+        y_center = y_center_norm * height
+        w = w_norm * width
+        h = h_norm * height
+        
+        xmin = int(x_center - w / 2)
+        ymin = int(y_center - h / 2)
+        xmax = int(x_center + w / 2)
+        ymax = int(y_center + h / 2)
+
         p = add_ponit({
-            "cat": CATEGORIES[0],
-            "top": True,
-            "topX": -1,
-            "topY": -1,
-            "bottomX": -1,
-            "bottomY": -1,
-            "color": colors[index]
+            "cat": category,
+            "top": True,  # 标注框已完成
+            "topX": xmin,
+            "topY": ymin,
+            "bottomX": xmax,
+            "bottomY": ymax,
+            "color": colors[index % len(colors)]
         }, len(points))
         points.append(p)
         setDefalutChoose(p, index)
-        # Get the bounding box coordinates
-        bndbox = obj.find('bndbox')
-        xmin = int(bndbox.find('xmin').text)
-        ymin = int(bndbox.find('ymin').text)
-        xmax = int(bndbox.find('xmax').text)
-        ymax = int(bndbox.find('ymax').text)
 
-        points[index]['topX'] = xmin * 1
-        points[index]['topY'] = ymin * 1
-        points[index]['top_x_widget'].value = xmin * 1
-        points[index]['top_y_widget'].value = ymin * 1
-        points[index]['bottomX'] = xmax * 1
-        points[index]['bottomY'] = ymax * 1
-        points[index]['bottom_x_widget'].value = xmax * 1
-        points[index]['bottom_y_widget'].value = ymax * 1
+        # 更新UI控件的值
+        points[index]['top_x_widget'].value = xmin
+        points[index]['top_y_widget'].value = ymin
+        points[index]['bottom_x_widget'].value = xmax
+        points[index]['bottom_y_widget'].value = ymax
+
+        print(f"加载标注: {category} 坐标: ({xmin}, {ymin}) - ({xmax}, {ymax})")
 
 
 points_widget = ipywidgets.VBox([])
@@ -195,10 +219,10 @@ def add_ponit(p, index):
     # 为下拉菜单添加事件处理函数，观察'value'属性的变化
     category_widget.observe(on_category_change, names='value')
 
-    top_x_widget = ipywidgets.IntText(description='Top X:')
-    top_y_widget = ipywidgets.IntText(description='Top Y:')
-    bottom_x_widget = ipywidgets.IntText(description='Bottom X:')
-    bottom_y_widget = ipywidgets.IntText(description='Bottom Y:')
+    top_x_widget = ipywidgets.IntText(description='Top X:', value=p['topX'])
+    top_y_widget = ipywidgets.IntText(description='Top Y:', value=p['topY'])
+    bottom_x_widget = ipywidgets.IntText(description='Bottom X:', value=p['bottomX'])
+    bottom_y_widget = ipywidgets.IntText(description='Bottom Y:', value=p['bottomY'])
 
     def update_top_x_widget(change):
         # global topX
