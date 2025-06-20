@@ -1,4 +1,4 @@
-path: ../datasets/duck1k_yolo
+path: ../datasets/project
 train: images/train
 val: images/val
 
