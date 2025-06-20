@@ -28,11 +28,11 @@ docker buildx create --name mybuilder --use
 docker buildx inspect mybuilder --bootstrap
 
 # 使用 Buildx 构建并推送多平台镜像
-docker buildx build --platform linux/arm64,linux/amd64 -t integem/notebook:maix_train_mx_v5.2 --push . || { echo "Failed to build $1"; exit 1; }
+docker buildx build --platform linux/arm64,linux/amd64 -t integem/notebook:maix_train_mx_v5.3 --push . || { echo "Failed to build $1"; exit 1; }
 
 echo "Docker镜像构建并推送完成。"
 
-docker run --privileged --pull always --rm -it -p 8888:8888 integem/notebook:maix_train_mx_v5.2 bash -c "python yolov5/train.py --img 224 --epoch 30 --data duck1k_dataset.yaml --weights yolov5s.pt --workers 0 && python yolov5/export.py --weight yolov5/runs/train/exp/weights/best.pt --include onnx --img 224 320 && cp -rf yolov5/runs/train/exp/weights/best.onnx ./best.onnx && chmod +x ./light/convert_yolov5_to_cvimodel.sh && bash ./light/convert_yolov5_to_cvimodel.sh best "/workspace/datasets/duck1k_yolo/images/val" "/workspace/datasets/duck1k_yolo/images/train/11770_116.jpg" && cp -rf workspace/best_int8.cvimodel ./best_int8.cvimodel && exit"
+docker run --privileged --pull always --rm -it -p 8888:8888 integem/notebook:maix_train_mx_v5.3 bash -c "python yolov5/train.py --img 224 --epoch 30 --data duck1k_dataset.yaml --weights yolov5s.pt --workers 0 && python yolov5/export.py --weight yolov5/runs/train/exp/weights/best.pt --include onnx --img 224 320 && cp -rf yolov5/runs/train/exp/weights/best.onnx ./best.onnx && chmod +x ./light/convert_yolov5_to_cvimodel.sh && bash ./light/convert_yolov5_to_cvimodel.sh best "/workspace/datasets/duck1k_yolo/images/val" "/workspace/datasets/duck1k_yolo/images/train/11770_116.jpg" && cp -rf workspace/best_int8.cvimodel ./best_int8.cvimodel && exit"
 
 echo "Docker测试完成。"
 
