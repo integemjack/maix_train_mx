@@ -1,4 +1,4 @@
-FROM integem/notebook:maix_train_mx_v5_1
+FROM integem/notebook:maix_train_mx_v5.3
 
 COPY ./train /workspace
 
