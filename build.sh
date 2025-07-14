@@ -1,85 +1,98 @@
 #!/bin/bash
+set -e  # 开启错误检测
 
-# ... [前面的安装脚本保持原样] ...
-
-# 构建器检查与使用（更新版本）
-echo "检查并准备构建器..."
-docker buildx inspect mybuilder >/dev/null 2>&1 && {
-    echo "构建器 mybuilder 已存在，更新配置并启动"
-    docker buildx rm mybuilder || true  # 强制移除老构建器
-    docker buildx create --name mybuilder --use \
-        --buildkitd-flags "--allow-insecure-entitlement network.host" \
-        --platform linux/arm64,linux/amd64
-} || {
-    echo "创建新的 Buildx 构建器"
-    docker buildx create --name mybuilder --use \
-        --buildkitd-flags "--allow-insecure-entitlement network.host" \
-        --platform linux/arm64,linux/amd64
+# 1. 安装 Buildx（保持原样）
+if ! docker buildx version &>/dev/null; then
+  mkdir -p ~/.docker/cli-plugins
+  curl -SL https://github.com/docker/buildx/releases/download/v0.9.1/buildx-v0.9.1.linux-amd64 -o ~/.docker/cli-plugins/docker-buildx
+  chmod +x ~/.docker/cli-plugins/docker-buildx
+  cat <<EOF > ~/.docker/config.json
+{
+  "experimental": "enabled"
 }
+EOF
+  echo "buildx 安装完成"
+else
+  echo "buildx 已存在"
+fi
 
-# 确保构建器已启动
-echo "启动构建器..."
+# 2. 强制重建构建器（解决平台冲突）
+docker buildx rm mybuilder &>/dev/null || true
+docker buildx create --name mybuilder --use \
+  --buildkitd-flags "--allow-insecure-entitlement network.host" \
+  --platform linux/amd64,linux/arm64
 docker buildx inspect mybuilder --bootstrap
 
-# 镜像构建（使用缓存优化）
-echo "开始构建并推送镜像..."
+# 3. 安装 QEMU 模拟器（替代 binfmt）
+docker run --privileged --rm tonistiigi/binfmt --install all
+
+# 4. 多平台构建（优化缓存）
 docker buildx build \
-    --platform linux/arm64,linux/amd64 \
-    -t integem/notebook:maix_train_mx_v5.4 \
-    --cache-to type=inline \
-    --cache-from type=registry,ref=integem/notebook:maix_train_mx_v5.4 \
-    --push . || {
-    echo "镜像构建失败"; exit 1
+  --platform linux/arm64,linux/amd64 \
+  -t integem/notebook:maix_train_mx_v5.4 \
+  --cache-from=type=registry,ref=integem/notebook:maix_train_mx_v5.4 \
+  --cache-to=type=inline,mode=max \
+  --push . || { 
+    echo "镜像构建失败"; 
+    exit 1 
 }
 
-echo "Docker镜像构建并推送完成。"
+echo "✅ Docker镜像构建并推送完成"
 
-# 数据准备（优化版）
-echo "准备训练数据..."
+# 5. 准备训练环境
 mkdir -p datasets yolov5 light
-docker run --rm -v $PWD/datasets:/data integem/notebook:maix_train_mx_v5.4 \
-    bash -c "cp -r /workspace/datasets/* /data/ || true"
+[ -d "$PWD/datasets" ] || docker run --rm -v $PWD:/data integem/notebook:maix_train_mx_v5.4 \
+  bash -c "cp -r /workspace/datasets /data/"
 
-# 模型训练与转换
-echo "启动模型训练任务..."
-docker run --privileged --pull always --rm -it -p 8888:8888 \
+# 6. 运行训练任务（优化错误处理和资源管理）
+run_training() {
+  echo "开始模型训练..."
+  docker run --privileged --rm -it \
     -v $PWD/datasets:/workspace/datasets \
     -v $PWD/yolov5:/workspace/yolov5 \
     -v $PWD/light:/workspace/light \
     integem/notebook:maix_train_mx_v5.4 bash -c "
-    set -e  # 开启错误检查
-    
-    # 1. 模型训练
-    echo '=== 开始模型训练 ==='
-    python yolov5/train.py \
+      set -ex
+      
+      # 训练YOLOv5模型
+      cd /workspace
+      python yolov5/train.py \
         --img 224 \
         --epoch 30 \
         --data duck1k_dataset.yaml \
         --weights yolov5s.pt \
-        --workers 0 \
-        --project /workspace/runs
-    
-    # 2. 导出ONNX
-    echo '=== 导出ONNX模型 ==='
-    python yolov5/export.py \
-        --weight /workspace/runs/train/exp/weights/best.pt \
+        --workers 0
+      
+      # 导出ONNX模型
+      python yolov5/export.py \
+        --weights yolov5/runs/train/exp/weights/best.pt \
         --include onnx \
         --img 224 320
-    
-    # 3. 模型转换
-    echo '=== 转换为CVIMODEL ==='
-    cp -rf /workspace/runs/train/exp/weights/best.onnx /workspace/
-    chmod +x /workspace/light/convert_yolov5_to_cvimodel.sh
-    /workspace/light/convert_yolov5_to_cvimodel.sh \
-        /workspace/best \
-        '/workspace/datasets/duck1k_yolo/images/val' \
-        '/workspace/datasets/duck1k_yolo/images/train/11770_116.jpg'
-    
-    # 4. 保存结果
-    echo '=== 保存最终模型 ==='
-    cp -rf /workspace/workspace/best_int8.cvimodel /workspace/
-    echo '所有任务成功完成'
-"
+      
+      # 转换模型格式
+      cp -f yolov5/runs/train/exp/weights/best.onnx .
+      chmod +x ./light/convert_yolov5_to_cvimodel.sh
+      ./light/convert_yolov5_to_cvimodel.sh best \
+        \"/workspace/datasets/duck1k_yolo/images/val\" \
+        \"/workspace/datasets/duck1k_yolo/images/train/11770_116.jpg\"
+      
+      # 保存最终模型
+      cp -f workspace/best_int8.cvimodel ./
+      echo '模型转换完成'
+    "
+}
 
-echo "Docker任务执行完成。输出文件："
+# 7. 执行训练（带重试逻辑）
+for i in {1..3}; do
+  if run_training; then
+    echo "✅ 模型训练成功"
+    break
+  else
+    echo "⚠️ 训练失败，尝试重试 ($i/3)..."
+    sleep $((i*5))
+  fi
+done || { echo "❌ 训练失败"; exit 1; }
+
+echo "✅ 全部任务完成"
+echo "生成的模型:"
 ls -lh best.onnx best_int8.cvimodel
