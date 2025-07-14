@@ -4,7 +4,7 @@ set -e  # 开启错误检测
 # 1. 安装 Buildx（保持原样）
 if ! docker buildx version &>/dev/null; then
   mkdir -p ~/.docker/cli-plugins
-  curl -SL https://github.com/docker/buildx/releases/download/v0.9.1/buildx-v0.9.1.linux-amd64 -o ~/.docker/cli-plugins/docker-buildx
+  curl -SL https://github.com/docker/buildx/releases/download/v0.25.0/buildx-v0.25.0.linux-amd64 -o ~/.docker/cli-plugins/docker-buildx
   chmod +x ~/.docker/cli-plugins/docker-buildx
   cat <<EOF > ~/.docker/config.json
 {
